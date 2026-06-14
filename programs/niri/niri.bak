@@ -1,0 +1,104 @@
+{ config, pkgs, ... }:
+
+{
+  programs.niri.settings = {
+    input = {
+      touchpad = {
+        tap = true;
+      };
+    };
+  
+
+    outputs = {
+    };
+
+    layout = {
+      gaps = 12;
+      center-focused-column = "never";
+      preset-column-widths = [
+        { proportion = 0.33333; }
+        { proportion = 0.5; }
+        { proportion = 0.66667; }
+      ];
+      default-column-width = { proportion = 0.5; };
+      focus-ring = {
+        width = 2;
+        # active = "#7fc8ff";
+        # inactive = "#505050";
+      };
+      shadow = {
+        enable = true;
+        softness = 10;
+        spread = 4;
+        offset = { x = 0; y = 0; };
+        color = "#0007";
+      };
+    };
+
+    spawn-at-startup = [
+      { command = [ "noctalia" ]; }
+      # { command = [ "spotify" ]; }
+      { command = [  "vicinae" "server" ]; }
+      # { command = [  "bitwarden" ]; }
+    ];
+
+    window-rules = [
+      {
+        matches = [{app-id = "kitty-float"; }];
+        open-floating = true;
+        default-column-width = { proportion = 0.5; };
+      }
+      {
+        matches = [{ app-id = "vicinae"; }];
+        opacity = 0.8;
+      }
+    ];
+
+    binds = with config.lib.niri.actions; {
+      "Mod+T".action = spawn "kitty";
+      "Mod+Shift+E".action = quit;
+      "Mod+Q" = { 
+        action = close-window;
+        repeat = false;
+      };
+      "Mod+D" = {
+        action = spawn "vicinae" "toggle";
+        repeat = false;
+      };
+      "Mod+Left".action = focus-column-left;
+      "Mod+Down".action = focus-window-down;
+      "Mod+Up".action = focus-window-up;
+      "Mod+Right".action = focus-column-right;
+      "Mod+Ctrl+Left".action = move-column-left;
+      "Mod+Ctrl+Down".action = move-window-down;
+      "Mod+Ctrl+Up".action = move-window-up;
+      "Mod+Ctrl+Right".action = move-column-right;
+      "Mod+Home".action = focus-column-first;
+      "Mod+End".action = focus-column-last;
+      "Mod+Page_Down".action = focus-workspace-down;
+      "Mod+Page_Up".action = focus-workspace-up;
+      "Mod+U".action = focus-workspace-down;
+      "Mod+I".action = focus-workspace-up;
+      "Mod+Ctrl+Page_Down".action = move-column-to-workspace-down;
+      "Mod+Ctrl+Page_Up".action = move-column-to-workspace-up;
+      "Mod+Ctrl+U".action = move-column-to-workspace-down;
+      "Mod+Ctrl+I".action = move-column-to-workspace-up;
+      "Mod+BracketLeft".action = consume-or-expel-window-left;
+      "Mod+BracketRight".action = consume-or-expel-window-right;
+      "Mod+Comma".action = consume-window-into-column;
+      "Mod+Period".action = expel-window-from-column;
+      "Mod+R".action = switch-preset-column-width;
+      "Mod+F".action = maximize-column;
+      "Mod+Shift+F".action = fullscreen-window;
+      "Mod+Ctrl+F".action = expand-column-to-available-width;
+      "Mod+C".action = center-column;
+      "Mod+Equal".action = set-column-width "-10%";
+      "Mod+Plus".action = set-column-width "+10%";
+      "Mod+V".action = toggle-window-floating;
+      "Mod+Shift+V".action = switch-focus-between-floating-and-tiling;
+      "Print".action = spawn-sh ''
+        hyprpicket -r -z & HP=$!; sleep 0.2; GEOM=$(slurp -o -d -F monospace); kill $HP 2>/dev/null; [ -n "$GEOM" ] || exit 0; grim -t ppm -g "$GEOM" - | satty --filename - --copy-command='wl-copy ..type image/png' -- annotation-size-factor 2.0 --output-filename="$(xdg-user-dir PICTURES)/Screenshots/Screenshot from %Y-%m-&d %H:%M:%S.png" --actions-on-enter="save-to-clipboard,exit" --brush-smooth-history-size=5 --disable-notifications
+      '';
+    };
+  };
+}  
