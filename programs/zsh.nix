@@ -14,6 +14,7 @@
     };
 
     initContent = ''
+      source ~/.p10k.zsh
       eval "fastfetch"
       export EDITOR=nvim
       export VISUAL=nvim

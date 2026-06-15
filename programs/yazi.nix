@@ -9,7 +9,7 @@
       };
 
       initLua = ''
-        require("clipboard"):setup()
+        require("clipboard")
       '';
 
       settings = {
