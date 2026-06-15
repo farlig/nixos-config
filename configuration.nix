@@ -36,6 +36,14 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
   nix.settings = {
     trusted-users = [ "@wheel" ];
   };
@@ -121,6 +129,7 @@
     slurp
     wl-clipboard
     zsh
+    alsa-utils
     ];
 
   programs.zsh.enable = true;
@@ -132,7 +141,10 @@
   fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
 
   xdg.portal = {
-    extraPortals = [ pkgs.xdg-desktop-portal-termfilechooser ];
+    extraPortals = [ 
+    pkgs.xdg-desktop-portal-termfilechooser
+    pkgs.xdg-desktop-portal-gtk
+    ];
     config = {
       common."org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
       niri."org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
