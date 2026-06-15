@@ -86,6 +86,7 @@
     description = "Anton";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [];
+    shell = pkgs.zsh;
   };
 
   # Allow unfree packages
@@ -118,7 +119,11 @@
     grim
     satty
     slurp
+    wl-clipboard
+    zsh
     ];
+
+  programs.zsh.enable = true;
 
   nixpkgs.config.permittedInsecurePackages = [
     "electron-39.8.10"
