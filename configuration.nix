@@ -131,6 +131,14 @@
 
   fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
 
+  xdg.portal = {
+    extraPortals = [ pkgs.xdg-desktop-portal-termfilechooser ];
+    config = {
+      common."org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
+      niri."org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
+    };
+  };
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;

@@ -3,19 +3,23 @@
 {
   programs.yazi = {
       enable = true;
+      shellWrapperName = "y";
 
       plugins = {
-          clipboard = pkgs.yaziPlugins.clipboard;
+        clipboard = pkgs.yaziPlugins.clipboard;
       };
 
-      initLua = ''
-        require("clipboard")
-      '';
-
       settings = {
-          manager = {
-              show_hidden = true;
-          };
+        manager = {
+          show_hidden = true;
+        };
+      };
+
+      keymap = {
+        mgr.prepend_keymap = [
+          { on = ["y"]; run = [ "yank" "plugin clipboard -- --action=copy" ]; }
+          { on = ["<C-p>"]; run = "plugin clipboard --action=paste"; }
+        ];
       };
   };
 }

@@ -252,7 +252,10 @@ binds {
     Mod+V       { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
     Mod+W { toggle-column-tabbed-display; }
-    Print { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command='wl-copy --type image/png' --annotation-size-factor 2.0 --output-filename=\"~/pictures/screenshots/screenshot from %Y-%m-%d %H:%M:%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
+    // Print { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command='wl-copy --type image/png' --annotation-size-factor 2.0 --output-filename=\"~/pictures/screenshots/screenshot from %Y-%m-%d %H:%M:%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
+    Print {
+    spawn-sh r#"grim -t ppm -g "$(slurp -o -d -F monospace)" - | satty --filename - --copy-command='wl-copy --type image/png' --output-filename="$HOME/pictures/screenshots/screenshot from %Y-%m-%d %H:%M:%S.png" --action-on-enter="save-to-file,exit" --save-after-copy --early-exit --annotation-size-factor 2.0 --brush-smooth-history-size=5 --disable-notifications"#
+    }
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
