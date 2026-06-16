@@ -69,6 +69,8 @@ spawn-at-startup "noctalia"
 
 spawn-at-startup "opensnitch-ui"
 
+spawn-at-startup "equibop"
+
 debug {
     honor-xdg-activation-with-invalid-serial
 }
