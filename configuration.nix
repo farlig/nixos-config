@@ -72,18 +72,18 @@
     variant = "";
   };
 
-  services.greetd = {
-    enable = true;
-    settings = {
-      default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd niri-session";
-      };
-    };
-  };
-
-  systemd.services.greetd.serviceConfig = {
-    Type = "idle";
-  };
+  # services.greetd = {
+  #   enable = true;
+  #   settings = {
+  #     default_session = {
+  #       command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd niri-session";
+  #     };
+  #   };
+  # };
+  #
+  # systemd.services.greetd.serviceConfig = {
+  #   Type = "idle";
+  # };
 
   # Configure console keymap
   console.keyMap = "dk-latin1";
