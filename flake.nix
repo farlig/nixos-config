@@ -35,6 +35,7 @@
           programs.niri.enable = true;
         }
         ./noctalia.nix
+        ./modules/noctalia-greeter.nix
         inputs.home-manager.nixosModules.home-manager
         {
             home-manager.useUserPackages = true;

@@ -9,7 +9,6 @@
     ./programs/kitty.nix
     ./programs/yazi.nix
     ./modules/termfilechooser.nix
-    ./modules/noctalia-greeter.nix
     lazyvim.homeManagerModules.default
   ];
   
