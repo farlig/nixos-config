@@ -11,7 +11,7 @@
       grep = "grep --color=auto";
       ls = "lsd";
       cat = "bat";
-      update = "sudo nixos-rebuild switch";
+      update = "sudo nixos-rebuild switch --flake ~/nixos-config#antonixos";
     };
 
     initContent = ''
