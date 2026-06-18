@@ -2,12 +2,16 @@
 
 {
   imports = [
+    # programs
     ./programs/niri/niri.nix
     ./programs/nvim.nix
     # ./programs/bash.nix
     ./programs/zsh.nix
     ./programs/kitty.nix
     ./programs/yazi.nix
+    ./programs/bitwarden.nix
+
+    # modules
     ./modules/termfilechooser.nix
     lazyvim.homeManagerModules.default
   ];

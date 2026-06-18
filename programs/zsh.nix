@@ -11,6 +11,7 @@
       grep = "grep --color=auto";
       ls = "lsd";
       cat = "bat";
+      update = "sudo nixos-rebuild switch";
     };
 
     initContent = ''
@@ -27,5 +28,10 @@
         file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
       }
     ];
+
+    oh-my-zsh = {
+      enable = true;
+      plugins = [ "tailscale" ];
+    };
   };
 }
