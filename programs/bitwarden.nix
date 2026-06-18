@@ -11,11 +11,12 @@
 
   programs.ssh = {
     enable = true;
-    matchBlocks = {
+    enableDefaultConfig = false;
+    settings = {
       "*" = {
-        extraOptions = {
-          IdentityAgent = "${config.home.homeDirectory}/.bitwarden-ssh-agent.sock";
-        };
+        IdentityAgent = "${config.home.homeDirectory}/.bitwarden-ssh-agent.sock";
+        AddKeysToAgent = "yes";
+        ServerAliveInterval = 60;
       };
     };
   };
