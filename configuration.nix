@@ -45,7 +45,7 @@
 
   hardware.bluetooth.enable = true;
 
-  services.tuned.enable = true;
+  # services.tuned.enable = true;
 
   services.upower.enable = true;
 
@@ -107,7 +107,7 @@
   users.users."anton" = {
     isNormalUser = true;
     description = "Anton";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [];
     shell = pkgs.zsh;
   };
@@ -120,6 +120,7 @@
     environment.systemPackages = with pkgs; [
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
+    vim
     git
     kitty
     btop
@@ -145,6 +146,8 @@
     wl-clipboard
     zsh
     alsa-utils
+    obs-studio
+    v4l-utils
     ];
 
   programs.zsh.enable = true;
@@ -167,6 +170,28 @@
   };
 
   services.tailscale = { enable = true; };
+
+  # power configuration
+
+  services.logind.settings.Login = {
+    HandleLidSwitch = "hybrid-sleep";
+    HandleLidSwitchExternalPower = "lock";
+  };
+
+  services.thermald.enable = true;
+  services.auto-cpufreq.enable = true;
+  services.auto-cpufreq.settings = {
+    battery = {
+      governor = "powersave";
+      turbo = "never";
+    };
+    charger = {
+      governor = "performance";
+      turbo = "auto";
+    };
+  };
+  powerManagement.powertop.enable = true;
+
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
