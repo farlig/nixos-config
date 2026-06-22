@@ -174,7 +174,7 @@
   # power configuration
 
   services.logind.settings.Login = {
-    HandleLidSwitch = "hybrid-sleep";
+    HandleLidSwitch = "poweroff";
     HandleLidSwitchExternalPower = "lock";
   };
 
