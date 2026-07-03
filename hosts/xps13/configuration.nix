@@ -34,7 +34,6 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   networking.hostName = "antonixos"; # Define your hostname.
-  networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -170,28 +169,6 @@
   };
 
   services.tailscale = { enable = true; };
-
-  # power configuration
-
-  services.logind.settings.Login = {
-    HandleLidSwitch = "poweroff";
-    HandleLidSwitchExternalPower = "lock";
-  };
-
-  services.thermald.enable = true;
-  services.auto-cpufreq.enable = true;
-  services.auto-cpufreq.settings = {
-    battery = {
-      governor = "powersave";
-      turbo = "never";
-    };
-    charger = {
-      governor = "performance";
-      turbo = "auto";
-    };
-  };
-  powerManagement.powertop.enable = true;
-
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
