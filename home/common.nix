@@ -12,7 +12,7 @@
     ./programs/bitwarden.nix
 
     # modules
-    ./modules/termfilechooser.nix
+    ../modules/termfilechooser.nix
     lazyvim.homeManagerModules.default
   ];
   

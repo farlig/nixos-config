@@ -32,6 +32,7 @@
         specialArgs = { inherit inputs; };
         modules = [
           hostPath
+          ./modules/cachix.nix
 
           inputs.niri.nixosModules.niri
           { programs.niri.enable = true; }
