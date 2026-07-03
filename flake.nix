@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
     noctalia = {
       url = "github:noctalia-dev/noctalia";
@@ -26,13 +27,14 @@
     };
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
+  outputs = { self, nixpkgs, chaotic, ... }@inputs:
     let
-      mkHost = hostPath: nixpkgs.lib.nixosSystem {
+      mkHost = hostPath: hostName: nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
         modules = [
           hostPath
           ./modules/cachix.nix
+          chaotic.nixosModules.default
 
           inputs.niri.nixosModules.niri
           { programs.niri.enable = true; }
@@ -45,7 +47,7 @@
             home-manager.useUserPackages = true;
             home-manager.useGlobalPkgs = true;
             home-manager.backupFileExtension = "backup";
-            home-manager.extraSpecialArgs = { inherit (inputs) lazyvim; };
+            home-manager.extraSpecialArgs = { inherit (inputs) lazyvim; inherit hostName; };
             home-manager.users.anton = {
               imports = [ ./home/common.nix ];
             };
@@ -54,13 +56,15 @@
       };
     in {
       nixosConfigurations = {
-        antonixos = mkHost ./hosts/antonixos/configuration.nix;
-        xps13     = mkHost ./hosts/xps13/configuration.nix;
+        antonixos = mkHost ./hosts/antonixos/configuration.nix "antonixos";
+        xps13     = mkHost ./hosts/xps13/configuration.nix "xps13";
       };
     };
 
   nixConfig = {
-    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-substituters = [ 
+      "https://noctalia.cachix.org"
+    ];
     extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
   };
 }

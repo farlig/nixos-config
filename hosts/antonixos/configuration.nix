@@ -81,7 +81,7 @@
 
   # Configure keymap in X11
   services.xserver.xkb = {
-    layout = "dk";
+    layout = "eu";
     variant = "";
   };
 
@@ -146,6 +146,7 @@
     alsa-utils
     obs-studio
     v4l-utils
+    steam
     ];
 
   programs.zsh.enable = true;
@@ -168,6 +169,27 @@
   };
 
   services.tailscale = { enable = true; };
+
+  # nvidia driver stuff
+  hardware.graphics = {
+    enable = true;
+  };
+
+  services.xserver.videoDrivers = [ "nvidia" ];
+
+  hardware.nvidia = {
+    modesetting.enable = true;
+
+    powerManagement.enable = false;
+
+    powerManagement.finegrained = false;
+
+    open = false;
+
+    nvidiaSettings = true;
+
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

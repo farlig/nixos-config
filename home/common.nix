@@ -1,4 +1,4 @@
-{ config, pkgs, lazyvim, ... }:
+{ config, pkgs, lazyvim, hostName, ... }:
 
 {
   imports = [
