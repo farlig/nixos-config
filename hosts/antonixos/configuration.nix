@@ -17,18 +17,6 @@
   boot.consoleLogLevel = 3;
   boot.initrd.verbose = false;
 
-  boot.kernelParams = [
-    "quiet"
-    "splash"
-    "loglevel=3"
-    "systemd.show_status=auto"
-    "rd.udev.log_level=3"
-    "udev.log_priority=3"
-    "vt.global_cursor_default=0"
-  ];
-
-  boot.plymouth.enable = true;
-
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_cachyos;
 
@@ -101,54 +89,12 @@
   # Configure console keymap
   console.keyMap = "dk-latin1";
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users."anton" = {
-    isNormalUser = true;
-    description = "Anton";
-    extraGroups = [ "networkmanager" "wheel" "video" ];
-    packages = with pkgs; [];
-    shell = pkgs.zsh;
-  };
-
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
     environment.systemPackages = with pkgs; [
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
-    vim
-    git
-    kitty
-    btop
-    inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
-    equibop
-    firefox
-    bitwarden-desktop
-    yazi
-    mpv
-    opensnitch
-    swaybg
-    ffmpeg
-    fastfetch
-    obsidian
-    polkit
-    bat
-    lsd
-    spotify
-    curl
-    grim
-    satty
-    slurp
-    wl-clipboard
-    zsh
-    alsa-utils
-    obs-studio
-    v4l-utils
-    quintom-cursor-theme
-    xwayland
-    xwayland-satellite
     protontricks
     winetricks
     protonup-qt

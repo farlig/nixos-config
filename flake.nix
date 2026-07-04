@@ -34,12 +34,14 @@
         modules = [
           hostPath
           ./modules/cachix.nix
+          ./modules/configuration/common-packages.nix
+          ./modules/configuration/quietboot.nix
+          ./modules/configuration/users.nix
           chaotic.nixosModules.default
 
           inputs.niri.nixosModules.niri
           { programs.niri.enable = true; }
 
-          ./modules/noctalia.nix
           ./modules/noctalia-greeter.nix
 
           inputs.home-manager.nixosModules.home-manager
@@ -47,7 +49,7 @@
             home-manager.useUserPackages = true;
             home-manager.useGlobalPkgs = true;
             home-manager.backupFileExtension = "backup";
-            home-manager.extraSpecialArgs = { inherit (inputs) lazyvim; inherit hostName; };
+            home-manager.extraSpecialArgs = { inherit (inputs) lazyvim; inherit hostName inputs; };
             home-manager.users.anton = {
               imports = [ ./home/common.nix ];
             };

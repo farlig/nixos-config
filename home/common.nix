@@ -10,8 +10,7 @@
     ./programs/kitty.nix
     ./programs/yazi.nix
     ./programs/bitwarden.nix
-
-    # modules
+    ./programs/noctalia.nix
     ../modules/termfilechooser.nix
     lazyvim.homeManagerModules.default
   ];

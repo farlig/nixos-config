@@ -17,22 +17,11 @@
   boot.consoleLogLevel = 3;
   boot.initrd.verbose = false;
 
-  boot.kernelParams = [
-    "quiet"
-    "splash"
-    "loglevel=3"
-    "systemd.show_status=auto"
-    "rd.udev.log_level=3"
-    "udev.log_priority=3"
-    "vt.global_cursor_default=0"
-  ];
-
-  boot.plymouth.enable = true;
-
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   networking.hostName = "antonixos"; # Define your hostname.
+  networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -101,51 +90,12 @@
   # Configure console keymap
   console.keyMap = "dk-latin1";
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users."anton" = {
-    isNormalUser = true;
-    description = "Anton";
-    extraGroups = [ "networkmanager" "wheel" "video" ];
-    packages = with pkgs; [];
-    shell = pkgs.zsh;
-  };
-
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
     environment.systemPackages = with pkgs; [
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
-    vim
-    git
-    kitty
-    btop
-    inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
-    equibop
-    firefox
-    bitwarden-desktop
-    yazi
-    mpv
-    opensnitch
-    swaybg
-    ffmpeg
-    fastfetch
-    obsidian
-    polkit
-    bat
-    lsd
-    spotify
-    curl
-    grim
-    satty
-    slurp
-    wl-clipboard
-    zsh
-    alsa-utils
-    obs-studio
-    v4l-utils
     ];
 
   programs.zsh.enable = true;
@@ -168,6 +118,28 @@
   };
 
   services.tailscale = { enable = true; };
+
+  # power configuration
+
+  services.logind.settings.Login = {
+    HandleLidSwitch = "poweroff";
+    HandleLidSwitchExternalPower = "lock";
+  };
+
+  services.thermald.enable = true;
+  services.auto-cpufreq.enable = true;
+  services.auto-cpufreq.settings = {
+    battery = {
+      governor = "powersave";
+      turbo = "never";
+    };
+    charger = {
+      governor = "performance";
+      turbo = "auto";
+    };
+  };
+  powerManagement.powertop.enable = true;
+
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

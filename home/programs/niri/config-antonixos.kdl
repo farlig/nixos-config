@@ -64,7 +64,7 @@ layout {
 }
 
 cursor {
-  xcursor-theme "Quintom_Ink"
+  xcursor-theme "breeze_cursors"
   xcursor-size 18
 }
 
