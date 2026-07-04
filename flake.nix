@@ -25,6 +25,10 @@
       url = "github:pfassina/lazyvim-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    stylix = {
+      url = "github:nix-community/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, chaotic, ... }@inputs:
@@ -37,7 +41,10 @@
           ./modules/configuration/common-packages.nix
           ./modules/configuration/quietboot.nix
           ./modules/configuration/users.nix
+          ./modules/stylix.nix
           chaotic.nixosModules.default
+
+          inputs.stylix.nixosModules.stylix
 
           inputs.niri.nixosModules.niri
           { programs.niri.enable = true; }

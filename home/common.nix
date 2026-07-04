@@ -11,6 +11,7 @@
     ./programs/yazi.nix
     ./programs/bitwarden.nix
     ./programs/noctalia.nix
+    ./programs/stylix.nix
     ../modules/termfilechooser.nix
     lazyvim.homeManagerModules.default
   ];
