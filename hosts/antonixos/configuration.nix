@@ -148,6 +148,7 @@
     v4l-utils
     steam
     quintom-cursor-theme
+    xwayland-satellite
     ];
 
   programs.zsh.enable = true;
@@ -185,12 +186,14 @@
 
     powerManagement.finegrained = false;
 
-    open = false;
+    open = true;
 
     nvidiaSettings = true;
 
     package = pkgs.nvidia_cachyos;
   };
+
+  hardware.graphics.enable32Bit = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
