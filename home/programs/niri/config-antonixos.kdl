@@ -77,8 +77,6 @@ layer-rule {
 }
 spawn-at-startup "noctalia"
 
-spawn-at-startup "opensnitch-ui"
-
 spawn-at-startup "equibop"
 
 spawn-at-startup "spotify"

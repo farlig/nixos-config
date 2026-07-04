@@ -13,7 +13,6 @@
     bitwarden-desktop
     yazi
     mpv
-    opensnitch-ui
     swaybg
     ffmpeg
     fastfetch
