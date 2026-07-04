@@ -11,9 +11,10 @@
     ];
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.limine.enable = true;
+  boot.loader.limine.secureBoot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 0;
+  boot.loader.timeout = 3;
   boot.consoleLogLevel = 3;
   boot.initrd.verbose = false;
 
@@ -98,6 +99,7 @@
     protontricks
     winetricks
     protonup-qt
+    sbctl
     ];
 
   programs.zsh.enable = true;
