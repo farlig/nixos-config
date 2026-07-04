@@ -13,6 +13,11 @@
   # Bootloader.
   boot.loader.limine.enable = true;
   boot.loader.limine.secureBoot.enable = true;
+  boot.loader.limine.extraEntries = ''
+    /Windows
+      protocol: efi
+      path: uuid(98ecdeb2-5ef3-42e4-93f8-57693c8a2894):/EFI/Microsoft/Boot/bootmgfw.efi
+  '';
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 3;
   boot.consoleLogLevel = 3;
