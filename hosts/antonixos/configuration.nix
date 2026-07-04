@@ -147,6 +147,7 @@
     obs-studio
     v4l-utils
     steam
+    quintom-cursor-theme
     ];
 
   programs.zsh.enable = true;

@@ -63,6 +63,11 @@ layout {
     }
 }
 
+cursor {
+  xcursor-theme "Quintom_Ink"
+  xcursor-size 18
+}
+
 overview {
     backdrop-color "#4c566a90"
 }
