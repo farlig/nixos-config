@@ -10,7 +10,8 @@
     settings = {
       bar.default = {
         end = [ "tray" "notifications" "clipboard" "volume" "brightness" "battery" "session" ];
-        margin_ends = 10;
+        margin_ends = 12;
+        margin_edge = 12;
         start = [ "workspaces" "wallpaper" "media" ];
       };
 
