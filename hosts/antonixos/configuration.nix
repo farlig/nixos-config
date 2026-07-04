@@ -30,7 +30,7 @@
   boot.plymouth.enable = true;
 
   # Use latest kernel.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_cachyos;
 
   networking.hostName = "antonixos"; # Define your hostname.
 
@@ -188,7 +188,7 @@
 
     nvidiaSettings = true;
 
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    package = pkgs.nvidia_cachyos;
   };
 
   # Some programs need SUID wrappers, can be configured further or are
