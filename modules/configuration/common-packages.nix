@@ -34,5 +34,6 @@
     xwayland
     xwayland-satellite
     kdePackages.breeze
+    proton-vpn
   ];
 }
