@@ -81,6 +81,10 @@ spawn-at-startup "opensnitch-ui"
 
 spawn-at-startup "equibop"
 
+spawn-at-startup "spotify"
+
+spawn-at-startup "sh" "-c" "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE"
+
 debug {
     honor-xdg-activation-with-invalid-serial
 }
