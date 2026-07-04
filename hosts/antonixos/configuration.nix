@@ -146,12 +146,23 @@
     alsa-utils
     obs-studio
     v4l-utils
-    steam
     quintom-cursor-theme
+    xwayland
     xwayland-satellite
+    protontricks
+    winetricks
+    protonup-qt
     ];
 
   programs.zsh.enable = true;
+
+  programs.steam = {
+    enable = true;
+    extraCompatPackages = [ pkgs.proton-ge-bin ];
+    gamescopeSession = {
+      enable = true;
+    };
+  };
 
   nixpkgs.config.permittedInsecurePackages = [
     "electron-39.8.10"
