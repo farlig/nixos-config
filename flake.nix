@@ -42,6 +42,7 @@
           ./modules/configuration/quietboot.nix
           ./modules/configuration/users.nix
           ./modules/stylix.nix
+          ./modules/configuration/network-share.nix
           chaotic.nixosModules.default
 
           inputs.stylix.nixosModules.stylix
