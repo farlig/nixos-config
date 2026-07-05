@@ -130,7 +130,10 @@
     ];
     config = {
       common."org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
-      niri."org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
+      niri = {
+        default = [ "gnome" "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
+      };
     };
   };
 
