@@ -19,9 +19,6 @@
   home.username = "anton";
   home.homeDirectory = "/home/anton";
   home.stateVersion = "26.05";
-  home.packages = [
-    pkgs.wl-clipboard
-  ];
 
   xdg.userDirs = {
     enable = true;

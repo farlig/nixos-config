@@ -7,7 +7,13 @@
 
   programs.zsh.enable = true;
 
-  fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+  fonts.packages = with pkgs; [
+    nerd-fonts.jetbrains-mono
+    # Fallbacks so emoji and CJK render instead of tofu boxes.
+    noto-fonts
+    noto-fonts-color-emoji
+    noto-fonts-cjk-sans
+  ];
 
   programs.noctalia-greeter = {
     enable = true;

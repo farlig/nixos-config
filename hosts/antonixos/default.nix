@@ -15,6 +15,8 @@
   boot.loader.limine = {
     enable = true;
     secureBoot.enable = true;
+    # Cap boot-menu generations so the ESP can't fill up.
+    maxGenerations = 10;
     extraEntries = ''
       /Windows
         protocol: efi
