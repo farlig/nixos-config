@@ -43,6 +43,7 @@
           ./modules/configuration/users.nix
           ./modules/stylix.nix
           ./modules/configuration/network-share.nix
+          ./modules/configuration/sound.nix
           chaotic.nixosModules.default
 
           inputs.stylix.nixosModules.stylix
