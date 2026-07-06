@@ -93,7 +93,9 @@
         launcher.compact = true;
 
         greeter_sync.auto_sync = true;
-        greeter_sync.privilege_command = "kitty -e pkexec";
+        # No terminal wrapper: a polkit rule (see modules/nixos/desktop.nix)
+        # authorizes this helper without a prompt, so pkexec runs headless.
+        greeter_sync.privilege_command = "pkexec";
 
         panel = {
           transparency_mode = "glass";
