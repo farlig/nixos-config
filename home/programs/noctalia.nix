@@ -9,13 +9,14 @@
 
     settings = {
       bar.default = {
-        end = [ "tray" "notifications" "clipboard" "volume" "brightness" "battery" "session" ];
+        end = [ "privacy" "tray" "notifications" "clipboard" "volume" "brightness" "battery" "session" ];
         margin_ends = 12;
         margin_edge = 12;
-        start = [ "workspaces" "wallpaper" "media" ];
+        start = [ "workspaces" "wallpaper" "media" "cpu" ];
       };
 
       backdrop.enable = true;
+      backdrop.enabled = true;
 
       control_center.shortcuts = [
         { type = "caffeine"; }
@@ -91,6 +92,7 @@
 
         launcher.compact = true;
 
+        greeter_sync.auto_sync = true;
         greeter_sync.privilege_command = "kitty -e pkexec";
 
         panel = {
@@ -137,6 +139,14 @@
       };
 
       widget.network.show_label = false;
+      widget.privacy.hide_inactive = true;
+      widget.sysmon.stat = "ram_used";
+
+      widget.tray = {
+        drawer = true;
+        hidden = [ "equibop" "spotify" ];
+        pinned = [ "proton.vpn.app.gtk" ];
+      };
     };
   };
 }
