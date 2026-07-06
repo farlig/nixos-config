@@ -1,21 +1,21 @@
 { config, pkgs, lazyvim, hostName, ... }:
 
+# Anton's home-manager configuration (was home/common.nix). Imported by the
+# system build via modules/nixos/home-manager.nix.
 {
   imports = [
-    # programs
     ./programs/niri/niri.nix
     ./programs/nvim.nix
-    # ./programs/bash.nix
     ./programs/zsh.nix
     ./programs/kitty.nix
     ./programs/yazi.nix
     ./programs/bitwarden.nix
     ./programs/noctalia.nix
     ./programs/stylix.nix
-    ../modules/termfilechooser.nix
+    ./programs/termfilechooser.nix
     lazyvim.homeManagerModules.default
   ];
-  
+
   home.username = "anton";
   home.homeDirectory = "/home/anton";
   home.stateVersion = "26.05";

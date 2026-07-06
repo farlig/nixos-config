@@ -1,5 +1,7 @@
 { pkgs, ... }:
 
+# System-wide theming via Stylix. Per-target opt-outs on the home side live in
+# home/programs/stylix.nix.
 {
   stylix = {
     enable = true;

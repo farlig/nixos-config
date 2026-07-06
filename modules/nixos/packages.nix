@@ -1,8 +1,9 @@
 { pkgs, inputs, ... }:
+
+# System-wide packages available on every host (was
+# modules/configuration/common-packages.nix).
 {
   environment.systemPackages = with pkgs; [
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
     vim
     git
     kitty

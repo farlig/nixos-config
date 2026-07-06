@@ -31,51 +31,22 @@
     };
   };
 
-  outputs = { self, nixpkgs, chaotic, ... }@inputs:
+  outputs = { self, nixpkgs, ... }@inputs:
     let
-      mkHost = hostPath: hostName: nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
-        modules = [
-          hostPath
-          ./modules/cachix.nix
-          ./modules/configuration/common-packages.nix
-          ./modules/configuration/quietboot.nix
-          ./modules/configuration/users.nix
-          ./modules/stylix.nix
-          ./modules/configuration/network-share.nix
-          ./modules/configuration/sound.nix
-          chaotic.nixosModules.default
-
-          inputs.stylix.nixosModules.stylix
-
-          inputs.niri.nixosModules.niri
-          { programs.niri.enable = true; }
-
-          ./modules/noctalia-greeter.nix
-
-          inputs.home-manager.nixosModules.home-manager
-          {
-            home-manager.useUserPackages = true;
-            home-manager.useGlobalPkgs = true;
-            home-manager.backupFileExtension = "backup";
-            home-manager.extraSpecialArgs = { inherit (inputs) lazyvim; inherit hostName inputs; };
-            home-manager.users.anton = {
-              imports = [ ./home/common.nix ];
-            };
-          }
-        ];
+      # A host is just its own folder under ./hosts. Everything shared lives in
+      # ./modules/nixos (imported once, from the host module).
+      mkHost = hostName: nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs hostName; };
+        modules = [ ./hosts/${hostName} ];
       };
     in {
       nixosConfigurations = {
-        antonixos = mkHost ./hosts/antonixos/configuration.nix "antonixos";
-        xps13     = mkHost ./hosts/xps13/configuration.nix "xps13";
+        antonixos = mkHost "antonixos";
+        xps13     = mkHost "xps13";
       };
     };
 
-  nixConfig = {
-    extra-substituters = [ 
-      "https://noctalia.cachix.org"
-    ];
-    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
-  };
+  # All binary caches (including noctalia, previously here in `nixConfig`) are now
+  # declared once in modules/nixos/caches.nix. See the note there before adding a
+  # cache back here for first-build bootstrapping on a fresh machine.
 }

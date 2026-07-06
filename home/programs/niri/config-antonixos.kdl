@@ -81,6 +81,10 @@ spawn-at-startup "equibop"
 
 spawn-at-startup "steam"
 
+// Delay spotify so wireplumber is up first; otherwise spotify grabs audio
+// early and resets the volume to 100.
+spawn-at-startup "sh" "-c" "sleep 5; exec spotify"
+
 spawn-at-startup "sh" "-c" "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE"
 
 debug {

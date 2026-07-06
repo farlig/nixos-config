@@ -1,5 +1,7 @@
 { ... }:
 
+# TrueNAS NFS share, auto-mounted over Tailscale (was
+# modules/configuration/network-share.nix).
 {
   services.rpcbind.enable = true;
   boot.supportedFilesystems = [ "nfs" ];

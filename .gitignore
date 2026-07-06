@@ -1,0 +1,3 @@
+# Claude Code auto-loads a file named CLAUDE.md; ours is just a symlink to the
+# vendor-neutral AGENTS.md (the canonical instructions file). Keep it local-only.
+CLAUDE.md
