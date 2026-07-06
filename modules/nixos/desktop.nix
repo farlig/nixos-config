@@ -21,6 +21,13 @@
     greeter-args = "--session niri-session";
   };
 
+  # noctalia's "sync wallpaper/colors to greeter" runs
+  # `pkexec noctalia-greeter-apply-appearance` to copy the staged appearance
+  # into /var/lib/noctalia-greeter. nixpkgs made the setuid pkexec wrapper
+  # opt-in, so without this the sync fails with "pkexec must be setuid root"
+  # and the greeter keeps its stale wallpaper.
+  security.polkit.enablePkexecWrapper = true;
+
   xdg.portal = {
     extraPortals = [
       pkgs.xdg-desktop-portal-termfilechooser
