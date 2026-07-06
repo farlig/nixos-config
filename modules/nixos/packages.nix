@@ -3,6 +3,11 @@
 # System-wide packages available on every host (was
 # modules/configuration/common-packages.nix).
 {
+  # Graphical askpass helper so `sudo -A` can prompt via a dialog when there is
+  # no interactive TTY (e.g. commands run by agents). Qt-based, works on niri.
+  environment.sessionVariables.SUDO_ASKPASS =
+    "${pkgs.kdePackages.ksshaskpass}/bin/ksshaskpass";
+
   environment.systemPackages = with pkgs; [
     vim
     git
@@ -40,5 +45,6 @@
     playerctl
     unzip
     p7zip
+    kdePackages.ksshaskpass
   ];
 }
