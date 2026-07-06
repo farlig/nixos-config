@@ -34,5 +34,7 @@
     xwayland-satellite
     kdePackages.breeze
     proton-vpn
+    claude-code
+    playerctl
   ];
 }
