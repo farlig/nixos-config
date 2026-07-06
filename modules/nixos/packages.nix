@@ -38,5 +38,7 @@
     claude-code
     mcp-nixos
     playerctl
+    unzip
+    p7zip
   ];
 }
