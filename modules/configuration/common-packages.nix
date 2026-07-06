@@ -35,6 +35,7 @@
     kdePackages.breeze
     proton-vpn
     claude-code
+    mcp-nixos
     playerctl
   ];
 }
