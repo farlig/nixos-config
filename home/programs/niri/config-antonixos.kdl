@@ -85,7 +85,13 @@ spawn-at-startup "steam"
 // early and resets the volume to 100.
 spawn-at-startup "sh" "-c" "sleep 5; exec spotify"
 
-spawn-at-startup "sh" "-c" "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE"
+// Import the session env into systemd/dbus so user services (portals) can see
+// WAYLAND_DISPLAY, then restart the file-chooser portal. The termfilechooser
+// backend is dbus-activated and usually starts before this import runs, so it
+// captures an env without WAYLAND_DISPLAY; its kitty+yazi wrapper then falls
+// back to the X11 GLFW backend and dies ("DISPLAY environment variable is
+// missing"). Restarting it here forces it to re-inherit the corrected env.
+spawn-at-startup "sh" "-c" "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE; systemctl --user restart xdg-desktop-portal.service xdg-desktop-portal-termfilechooser.service"
 
 debug {
     honor-xdg-activation-with-invalid-serial
