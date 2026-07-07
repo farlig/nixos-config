@@ -9,6 +9,7 @@
     ./programs/zsh.nix
     ./programs/kitty.nix
     ./programs/yazi.nix
+    ./programs/fastfetch.nix
     ./programs/bitwarden.nix
     ./programs/noctalia.nix
     ./programs/stylix.nix
