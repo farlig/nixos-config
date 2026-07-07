@@ -39,6 +39,7 @@
     protontricks
     winetricks
     protonup-qt
+    deadlock-mod-manager
     sbctl
   ];
 
