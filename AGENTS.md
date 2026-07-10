@@ -94,6 +94,8 @@ home/
   obsidian/yazi (see `home/programs/noctalia.nix` `theme.templates`).
 - **The file picker** → termfilechooser → yazi in kitty (`home/programs/termfilechooser.nix`
   + portal config in `modules/nixos/desktop.nix`).
+- **A URL-scheme / default-app handler** (e.g. `discord://` → equibop) →
+  `xdg.mimeApps.defaultApplications` in `home/default.nix`.
 
 ## Host differences (antonixos vs xps13)
 
@@ -138,3 +140,10 @@ fwupd is laptop-only — never add it to antonixos.
   and `IdentityAgent` to the bitwarden socket).
 - **NFS share** at `/mnt/truenas` is `noauto`/automount over Tailscale — it only
   mounts on access and requires `tailscaled` up.
+- **URL-scheme handlers** live in `xdg.mimeApps.defaultApplications` in
+  `home/default.nix`. Enabling `xdg.mimeApps` makes `~/.config/mimeapps.list` a
+  read-only store symlink, so apps can no longer self-register schemes at runtime
+  (Electron's `setAsDefaultProtocolClient` silently no-ops). Any handler an app
+  used to register imperatively (`claude-cli`, deadlock mod manager, …) must be
+  listed there too, or it regresses. Equibop's `discord://` handler is set this
+  way because its self-registration never stuck on NixOS.
