@@ -134,5 +134,9 @@
     rsync
     tmux
     pciutils
+    # Terminfo for kitty, so SSHing in from a kitty terminal (TERM=xterm-kitty)
+    # doesn't break pagers/line-editing. This box has no GUI/kitty itself; it's
+    # just the terminfo entry the remote side needs.
+    kitty.terminfo
   ];
 }
