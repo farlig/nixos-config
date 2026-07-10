@@ -40,6 +40,7 @@
     winetricks
     protonup-qt
     deadlock-mod-manager
+    prismlauncher # modded Minecraft launcher (imports CurseForge/Modrinth packs)
     sbctl
   ];
 
