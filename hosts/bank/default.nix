@@ -68,6 +68,17 @@
   # Let anton drive docker without sudo (merges with the groups in users.nix).
   users.users.anton.extraGroups = [ "docker" ];
 
+  ### Tailscale subnet router — advertise the home LAN to the tailnet ########
+  # Lets remote tailnet nodes reach the 192.168.1.0/24 home network *through*
+  # bank. `useRoutingFeatures = "server"` just enables IP forwarding (additive);
+  # extraSetFlags runs `tailscale set` in place (no reconnect), so deploying this
+  # won't drop an existing SSH session. The route must still be approved once in
+  # the admin console (Machines → bank → Edit route settings) before it carries
+  # traffic. Nodes physically on 192.168.1.0/24 should NOT --accept-routes, or
+  # they'd send their own LAN traffic back through the tunnel.
+  services.tailscale.useRoutingFeatures = "server";
+  services.tailscale.extraSetFlags = [ "--advertise-routes=192.168.1.0/24" ];
+
   ### NFS server — the three exports carried over from TrueNAS ################
   # all_squash maps every client to uid/gid 3000 (localadm), matching on-disk
   # ownership. Clients are the Tailscale CGNAT range.
