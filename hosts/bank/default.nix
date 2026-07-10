@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, inputs, hostName, ... }:
 
 # bank — the home server, migrated from a TrueNAS SCALE box. Headless: it imports
 # the host-agnostic base (NOT ../../modules/nixos, which is the desktop bundle)
@@ -9,6 +9,7 @@
   imports = [
     ../../modules/nixos/base.nix
     ./hardware-configuration.nix
+    inputs.home-manager.nixosModules.home-manager
   ];
 
   networking.hostName = "bank";
@@ -112,6 +113,17 @@
   # it's a proper login shell — the desktop hosts get this from desktop.nix,
   # which this headless host doesn't import.
   programs.zsh.enable = true;
+
+  # Lean home-manager profile: zsh (headless variant), nvim and yazi only — no
+  # GUI/theming. The desktop hosts wire this via modules/nixos/home-manager.nix
+  # pointed at home/default.nix; bank points at the slim home/bank.nix instead.
+  home-manager = {
+    useUserPackages = true;
+    useGlobalPkgs = true;
+    backupFileExtension = "backup";
+    extraSpecialArgs = { inherit (inputs) lazyvim; inherit hostName inputs; };
+    users.anton.imports = [ ../../home/bank.nix ];
+  };
 
   # Headless server tooling (the GUI packages.nix is desktop-only).
   environment.systemPackages = with pkgs; [
