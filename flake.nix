@@ -43,6 +43,7 @@
       nixosConfigurations = {
         antonixos = mkHost "antonixos";
         xps13     = mkHost "xps13";
+        bank      = mkHost "bank";
       };
     };
 

@@ -1,13 +1,15 @@
 { ... }:
 
-# TrueNAS NFS share, auto-mounted over Tailscale (was
-# modules/configuration/network-share.nix).
+# NFS data share from the `bank` home server, auto-mounted over Tailscale.
+# (Was the TrueNAS box; bank replaced it — the pool `Pool1` was renamed `vault`,
+# so the export path is now /mnt/vault/data. Uses the MagicDNS name `bank`
+# rather than a hard-coded Tailscale IP.)
 {
   services.rpcbind.enable = true;
   boot.supportedFilesystems = [ "nfs" ];
 
   fileSystems."/mnt/truenas" = {
-    device = "100.88.141.82:/mnt/Pool1/data";
+    device = "bank:/mnt/vault/data";
     fsType = "nfs";
     options = [
       "x-systemd.automount"

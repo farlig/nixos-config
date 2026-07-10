@@ -1,22 +1,20 @@
 { inputs, ... }:
 
-# Everything that is identical across every host lives here. A host imports
-# this once (see hosts/<name>/default.nix) and then only declares what makes
-# that machine unique.
+# The full desktop/laptop bundle: base.nix (host-agnostic foundation) plus the
+# graphical session, theming, GUI packages and home-manager. Desktop hosts
+# (antonixos, xps13) import this. A headless server imports ./base.nix directly
+# and layers its own server modules instead — see hosts/bank.
 {
   imports = [
-    # Local shared modules
-    ./nix.nix
-    ./locale.nix
-    ./networking.nix
-    ./boot.nix
+    # Host-agnostic foundation (nix, locale, networking, boot, users, caches).
+    ./base.nix
+
+    # Desktop-only local modules
     ./audio.nix
     ./desktop.nix
     ./packages.nix
-    ./users.nix
     ./network-share.nix
     ./stylix.nix
-    ./caches.nix
     ./home-manager.nix
 
     # External flake modules, wired in one place instead of per-host
@@ -26,7 +24,4 @@
     inputs.noctalia-greeter.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
   ];
-
-  # NixOS release the shared defaults were written against. Host-agnostic.
-  system.stateVersion = "26.05";
 }
