@@ -2,8 +2,8 @@
 
 # bank — the home server, migrated from a TrueNAS SCALE box. Headless: it imports
 # the host-agnostic base (NOT ../../modules/nixos, which is the desktop bundle)
-# and layers ZFS, Docker, NFS and snapshots on top. See the migration plan in
-# ~/.claude/plans for the full story; the data pool `vault` was renamed from the
+# and layers ZFS, Docker, NFS and snapshots on top. See docs/truenas-migration.md
+# for the full migration runbook; the data pool `vault` was renamed from the
 # TrueNAS `Pool1` on import.
 {
   imports = [
@@ -119,11 +119,6 @@
   # wheel sudo without one (a password prompt would be unanswerable over a
   # key-only login).
   security.sudo.wheelNeedsPassword = false;
-
-  # anton's login shell is zsh (modules/nixos/users.nix). Enable the program so
-  # it's a proper login shell — the desktop hosts get this from desktop.nix,
-  # which this headless host doesn't import.
-  programs.zsh.enable = true;
 
   # Lean home-manager profile: zsh (headless variant), nvim and yazi only — no
   # GUI/theming. The desktop hosts wire this via modules/nixos/home-manager.nix

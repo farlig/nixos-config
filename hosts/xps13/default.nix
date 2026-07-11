@@ -8,9 +8,6 @@
     ./hardware-configuration.nix
   ];
 
-  # NOTE: the original hosts/xps13/configuration.nix set this to "antonixos",
-  # which looks like a copy-paste bug (both machines ended up named antonixos).
-  # Corrected here — see proposal/README.md. Change back if it was intentional.
   networking.hostName = "xps13";
 
   # Bootloader: systemd-boot, no menu delay.
@@ -36,6 +33,11 @@
     layout = "dk";
     variant = "";
   };
+
+  # Laptop peripherals/battery: bluetooth and upower are wanted only here —
+  # the gaming desktop and the headless server deliberately go without.
+  hardware.bluetooth.enable = true;
+  services.upower.enable = true;
 
   # Laptop power management.
   services.logind.settings.Login = {

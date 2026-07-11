@@ -1,3 +1,8 @@
 # Claude Code auto-loads a file named CLAUDE.md; ours is just a symlink to the
 # vendor-neutral AGENTS.md (the canonical instructions file). Keep it local-only.
 CLAUDE.md
+
+# home-manager writes *.backup when it clobbers an existing file; byproducts,
+# never config (see AGENTS.md conventions).
+*.backup
+*.bak

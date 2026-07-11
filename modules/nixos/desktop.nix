@@ -5,7 +5,20 @@
 {
   programs.niri.enable = true;
 
-  programs.zsh.enable = true;
+  # Quiet, graphical boot (was in the shared boot.nix; the headless server
+  # keeps a plain verbose console instead).
+  boot.consoleLogLevel = 3;
+  boot.initrd.verbose = false;
+  boot.kernelParams = [
+    "quiet"
+    "splash"
+    "loglevel=3"
+    "systemd.show_status=auto"
+    "rd.udev.log_level=3"
+    "udev.log_priority=3"
+    "vt.global_cursor_default=0"
+  ];
+  boot.plymouth.enable = true;
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
