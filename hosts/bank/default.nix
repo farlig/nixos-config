@@ -66,7 +66,13 @@
   # /mnt/vault/configs and /mnt/vault/data via each stack's bind mounts.
   virtualisation.docker.enable = true;
   # Let anton drive docker without sudo (merges with the groups in users.nix).
-  users.users.anton.extraGroups = [ "docker" ];
+  # `apps` is the gid the compose stacks run as (PUID/PGID 3001, carried over
+  # from TrueNAS) — several config trees under /mnt/vault/configs are owned
+  # 3001:3001 and group-writable, so membership lets anton edit them over SSH
+  # without sudo. Note this is distinct from localadm (3000), the NFS squash
+  # identity below.
+  users.groups.apps.gid = 3001;
+  users.users.anton.extraGroups = [ "docker" "apps" ];
 
   ### Tailscale subnet router — advertise the home LAN to the tailnet ########
   # Lets remote tailnet nodes reach the 192.168.1.0/24 home network *through*
