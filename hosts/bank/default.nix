@@ -140,6 +140,9 @@
     rsync
     tmux
     pciutils
+    # sqlite3 CLI with readline (the plain `sqlite` package's binary has no line
+    # editing/history) — for poking at app databases like Jellyfin's.
+    sqlite-interactive
     # Terminfo for kitty, so SSHing in from a kitty terminal (TERM=xterm-kitty)
     # doesn't break pagers/line-editing. This box has no GUI/kitty itself; it's
     # just the terminfo entry the remote side needs.
