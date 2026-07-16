@@ -18,12 +18,12 @@
   # btrfs filesystem UUID below survives the conversion unchanged.
   boot.initrd.luks.devices = {
     cryptroot = {
-      device = "/dev/disk/by-uuid/REPLACE-WITH-LUKS-UUID-ROOT";
+      device = "/dev/disk/by-uuid/62698cfb-75d8-4bec-a56d-4006bb615457";
       allowDiscards = true; # SSD TRIM through dm-crypt
       bypassWorkqueues = true; # better NVMe latency
     };
     cryptswap = {
-      device = "/dev/disk/by-uuid/REPLACE-WITH-LUKS-UUID-SWAP";
+      device = "/dev/disk/by-uuid/66b9e7df-05cd-4038-8011-db8c0b3a2560";
       allowDiscards = true;
       bypassWorkqueues = true;
     };
