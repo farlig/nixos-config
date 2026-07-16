@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 # antonixos — the desktop. Everything here is specific to this machine;
 # shared configuration lives in ../../modules/nixos.
@@ -66,5 +66,27 @@
     open = true;
     nvidiaSettings = true;
     package = pkgs.nvidia_cachyos;
+  };
+
+  # Keep the driver's device state resident even with no GPU clients. Without
+  # this, when the last GL/EGL client (e.g. the last kitty window) exits, the
+  # driver tears down and the card idles; the next client pays a ~1-2s cold
+  # re-init before it can render. That delay is what made "the first kitty when
+  # none is already open" feel slow (fastfetch itself runs in ~50ms).
+  #
+  # The stock `hardware.nvidia.nvidiaPersistenced` option is unbuildable on the
+  # cachyos driver (upstream re-uploaded the persistenced source, breaking its
+  # fixed-output hash), so enable persistence mode via nvidia-smi instead — it
+  # ships with the already-built driver package.
+  systemd.services.nvidia-persistence-mode = {
+    description = "Enable NVIDIA persistence mode (keep the GPU warm to avoid cold re-init)";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "systemd-modules-load.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pm 1";
+      ExecStop = "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pm 0";
+    };
   };
 }
