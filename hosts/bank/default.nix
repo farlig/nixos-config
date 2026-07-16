@@ -74,6 +74,62 @@
   users.groups.apps.gid = 3001;
   users.users.anton.extraGroups = [ "docker" "apps" ];
 
+  ### Shoko — live config tree on the NVMe, mirrored nightly to the pool ######
+  # Shoko's SQLite DB is a random-IO workload and was painfully slow on `vault`
+  # (spinning rust), so the whole ~5G .shoko tree lives on the NVMe root; the
+  # stack in /home/anton/stacks/shoko/compose.yaml binds /var/lib/shoko to the
+  # container's /home/shoko/.shoko (unchanged, so settings-server.json's
+  # container-internal paths still resolve). The NVMe has no redundancy and no
+  # snapshots, which the nightly mirror below buys back.
+  #
+  # 3001:3001 is the container's PUID/PGID (carried over from TrueNAS). gid 3001
+  # is the `apps` group above; there is no uid 3001 user, so the owner is
+  # numeric — matching how these files are already owned on the pool. 0770 keeps
+  # anton able to edit the tree over SSH via `apps`.
+  systemd.tmpfiles.rules = [ "d /var/lib/shoko 0770 3001 3001 -" ];
+
+  # The mirror's destination is the dataset that used to hold the live tree, so
+  # sanoid's existing vault/configs rules snapshot it — that's where the version
+  # history comes from, and why nothing needs adding to services.sanoid above.
+  systemd.services.shoko-backup = {
+    description = "Mirror Shoko's NVMe config tree back to the vault pool";
+    startAt = "*-*-* 04:00:00";
+    path = [ pkgs.sqlite pkgs.rsync ];
+    serviceConfig.Type = "oneshot";
+    # Don't write into a bare /mnt/vault if the pool failed to import. This is a
+    # [Unit] key, so it belongs in unitConfig — systemd silently ignores it in
+    # [Service] (i.e. under serviceConfig) and the guard would never fire.
+    unitConfig.RequiresMountsFor = "/mnt/vault/configs/shoko-config";
+    script = ''
+      src=/var/lib/shoko/Shoko.CLI
+      dst=/mnt/vault/configs/shoko-config/Shoko.CLI
+
+      install -d -o 3001 -g 3001 -m 0770 "$dst/SQLite"
+
+      # rsync of a live SQLite DB can catch the .db3 and its -wal at different
+      # instants; `.backup` takes a read lock and emits a checkpointed
+      # standalone copy instead, with no downtime for Shoko. Writing .tmp and
+      # renaming keeps an hourly sanoid snapshot from catching a partial file.
+      for db in JMMServer Quartz; do
+        sqlite3 "$src/SQLite/$db.db3" ".backup '$dst/SQLite/$db.db3.tmp'"
+        chown 3001:3001 "$dst/SQLite/$db.db3.tmp"
+        mv -f "$dst/SQLite/$db.db3.tmp" "$dst/SQLite/$db.db3"
+      done
+
+      # A .backup output is checkpointed, so a leftover WAL beside it is a
+      # mismatched pair SQLite may refuse or misread at restore time.
+      rm -f "$dst"/SQLite/*.db3-wal "$dst"/SQLite/*.db3-shm
+
+      # Everything else. SQLite/ is excluded because the loop above owns it and
+      # logs/ is churn with no restore value; --exclude also protects both dirs
+      # on the destination from --delete.
+      rsync -aH --delete \
+        --exclude='Shoko.CLI/SQLite/' \
+        --exclude='Shoko.CLI/logs/' \
+        /var/lib/shoko/ /mnt/vault/configs/shoko-config/
+    '';
+  };
+
   ### Tailscale subnet router — advertise the home LAN to the tailnet ########
   # Lets remote tailnet nodes reach the 192.168.1.0/24 home network *through*
   # bank. `useRoutingFeatures = "server"` just enables IP forwarding (additive);

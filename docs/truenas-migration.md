@@ -130,6 +130,11 @@ ssh anton@bank                     # works by key, fails by password
 - `networking.hostId = "9d67a92d"` (required by ZFS; keep stable).
 - Stock kernel (ZFS-compatible), **not** the CachyOS kernel used on antonixos.
 - Docker data-root stays on `/var/lib/docker` (fast NVMe), not the pool.
+- **Shoko** is the one stack whose config tree also lives on the NVMe
+  (`/var/lib/shoko`) — its SQLite DB was too slow on the pool. The
+  `shoko-backup` timer mirrors it nightly back to
+  `/mnt/vault/configs/shoko-config`, where sanoid snapshots it. Other stacks
+  still bind their config straight from `/mnt/vault/configs`.
 - `localadm` at uid/gid 3000 matches the NFS `all_squash` target + file ownership.
 - **Never `zpool upgrade vault`** until the TrueNAS rollback is no longer wanted.
 
