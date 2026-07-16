@@ -131,7 +131,9 @@ home/
 - **A binary cache / substituter** → `modules/nixos/caches.nix` (not flake.nix nixConfig;
   see the note in that file re: first-build bootstrapping on a fresh machine).
 - **Theming** → system-wide via stylix (`modules/nixos/stylix.nix`); apps that theme
-  themselves opt out in `home/programs/stylix.nix` (currently niri, kitty, noctalia).
+  themselves opt out in `home/programs/stylix.nix` (currently niri, kitty,
+  noctalia, yazi — anything noctalia's theme templates write must opt out, or
+  HM activation fails on the clobbered file at the next-but-one rebuild).
   noctalia applies its own Catppuccin theme + templates to btop/kitty/niri/neovim/
   obsidian/yazi (see `home/programs/noctalia.nix` `theme.templates`).
 - **The file picker** → termfilechooser → yazi in kitty (`home/programs/termfilechooser.nix`
