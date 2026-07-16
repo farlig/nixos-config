@@ -67,8 +67,6 @@ layer-rule {
 }
 spawn-at-startup "noctalia"
 
-spawn-at-startup "opensnitch-ui"
-
 spawn-at-startup "equibop"
 
 // KDE Connect tray icon (the daemon itself is dbus-activated; firewall

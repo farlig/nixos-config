@@ -14,7 +14,7 @@ Anton's NixOS configuration, a Nix flake on `nixpkgs` unstable. Three hosts:
   the CachyOS kernel, Steam/gaming, 3440x1440@165 ultrawide (`DP-1`).
 - **xps13** — laptop for schoolwork. systemd-boot, LUKS2 full disk encryption
   (root + swap, single passphrase), laptop power management (thermald,
-  auto-cpufreq, powertop), bluetooth/upower, fwupd/LVFS firmware, opensnitch.
+  auto-cpufreq, powertop), bluetooth/upower, fwupd/LVFS firmware.
 - **bank** — headless home server (migrated off TrueNAS SCALE; runbook in
   `docs/truenas-migration.md`). systemd-boot, ZFS data pool `vault` + sanoid
   snapshots, Docker compose stacks, NFS server, Tailscale subnet router for the
@@ -157,7 +157,7 @@ host file, not in a shared module.
 | Disk encryption | none                          | LUKS2 (root + swap, one passphrase) | none                            |
 | Power/peripherals | bluetooth                   | thermald, auto-cpufreq, powertop, bluetooth, upower | none            |
 | Firmware    | none                              | fwupd/LVFS                         | none                             |
-| Extras      | Steam, gamescope, protontricks, sbctl | opensnitch                     | ZFS+sanoid, Docker, NFS server, subnet router, sshd |
+| Extras      | Steam, gamescope, protontricks, sbctl | none                           | ZFS+sanoid, Docker, NFS server, subnet router, sshd |
 
 fwupd is laptop-only — never add it to antonixos. bank must NOT use the CachyOS
 kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
