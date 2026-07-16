@@ -13,6 +13,22 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
+  # LUKS2 full disk encryption. Placeholder UUIDs — fill in the real ones
+  # during the in-place reencrypt (cryptsetup luksUUID <partition>); the
+  # btrfs filesystem UUID below survives the conversion unchanged.
+  boot.initrd.luks.devices = {
+    cryptroot = {
+      device = "/dev/disk/by-uuid/REPLACE-WITH-LUKS-UUID-ROOT";
+      allowDiscards = true; # SSD TRIM through dm-crypt
+      bypassWorkqueues = true; # better NVMe latency
+    };
+    cryptswap = {
+      device = "/dev/disk/by-uuid/REPLACE-WITH-LUKS-UUID-SWAP";
+      allowDiscards = true;
+      bypassWorkqueues = true;
+    };
+  };
+
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/2d1d7562-8135-4800-b528-7a8cf7cdbccf";
       fsType = "btrfs";
@@ -37,7 +53,7 @@
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/b1b38a44-b489-4ffd-8433-b005ce89dd84"; }
+    [ { device = "/dev/mapper/cryptswap"; }
     ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
