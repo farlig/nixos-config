@@ -71,6 +71,10 @@ spawn-at-startup "opensnitch-ui"
 
 spawn-at-startup "equibop"
 
+// KDE Connect tray icon (the daemon itself is dbus-activated; firewall
+// ports are opened by programs.kdeconnect in modules/nixos/desktop.nix).
+spawn-at-startup "kdeconnect-indicator"
+
 // Delay spotify so wireplumber is up first; otherwise spotify grabs audio
 // early and resets the volume to 100.
 spawn-at-startup "sh" "-c" "sleep 5; exec spotify"

@@ -44,6 +44,9 @@
     sbctl
   ];
 
+  # Bluetooth (controllers, headphones). upower stays laptop-only.
+  hardware.bluetooth.enable = true;
+
   programs.steam = {
     enable = true;
     extraCompatPackages = [ pkgs.proton-ge-bin ];

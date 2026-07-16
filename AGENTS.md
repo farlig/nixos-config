@@ -67,7 +67,7 @@ modules/nixos/                shared config, split by concern
                               /mnt/vault (desktop bundle only — bank is the server)
   audio.nix                   PipeWire (+rtkit)
   desktop.nix                 niri, greeter, quiet/plymouth boot, fonts, xdg portals,
-                              noctalia greeter polkit
+                              noctalia greeter polkit, kdeconnect (+firewall ports)
   packages.nix                desktop-host packages + SUDO_ASKPASS (NOT on bank)
   users.nix                   user `anton` (wheel/video/networkmanager, zsh login shell)
   stylix.nix                  system stylix (catppuccin-mocha, dark)
@@ -155,7 +155,7 @@ host file, not in a shared module.
 | GPU / GUI   | NVIDIA (cachyos pkg, open module) | Intel (default)                    | none (no desktop bundle)         |
 | xkb layout  | `eu`                              | `dk`                               | n/a                              |
 | Disk encryption | none                          | LUKS2 (root + swap, one passphrase) | none                            |
-| Power/peripherals | none                        | thermald, auto-cpufreq, powertop, bluetooth, upower | none            |
+| Power/peripherals | bluetooth                   | thermald, auto-cpufreq, powertop, bluetooth, upower | none            |
 | Firmware    | none                              | fwupd/LVFS                         | none                             |
 | Extras      | Steam, gamescope, protontricks, sbctl | opensnitch                     | ZFS+sanoid, Docker, NFS server, subnet router, sshd |
 

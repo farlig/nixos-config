@@ -5,6 +5,11 @@
 {
   programs.niri.enable = true;
 
+  # Phone integration (clipboard/files/notifications) over the LAN — no
+  # bluetooth involved. Opens TCP+UDP 1714-1764 in the firewall. The tray
+  # indicator is spawned from each host's niri config.
+  programs.kdeconnect.enable = true;
+
   # Quiet, graphical boot (was in the shared boot.nix; the headless server
   # keeps a plain verbose console instead).
   boot.consoleLogLevel = 3;

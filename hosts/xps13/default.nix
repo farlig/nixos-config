@@ -42,8 +42,8 @@
     variant = "";
   };
 
-  # Laptop peripherals/battery: bluetooth and upower are wanted only here —
-  # the gaming desktop and the headless server deliberately go without.
+  # Laptop peripherals/battery. upower is wanted only here — the desktop and
+  # server go without (bluetooth is also on antonixos these days).
   hardware.bluetooth.enable = true;
   services.upower.enable = true;
 

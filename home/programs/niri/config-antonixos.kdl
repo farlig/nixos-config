@@ -79,6 +79,10 @@ spawn-at-startup "noctalia"
 
 spawn-at-startup "equibop"
 
+// KDE Connect tray icon (the daemon itself is dbus-activated; firewall
+// ports are opened by programs.kdeconnect in modules/nixos/desktop.nix).
+spawn-at-startup "kdeconnect-indicator"
+
 spawn-at-startup "steam"
 
 // Delay spotify so wireplumber is up first; otherwise spotify grabs audio
