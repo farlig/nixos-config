@@ -12,9 +12,9 @@ Anton's NixOS configuration, a Nix flake on `nixpkgs` unstable. Three hosts:
 
 - **antonixos** — gaming desktop. Limine bootloader + secure boot, NVIDIA on
   the CachyOS kernel, Steam/gaming, 3440x1440@165 ultrawide (`DP-1`).
-- **xps13** — laptop for schoolwork. systemd-boot, laptop power management
-  (thermald, auto-cpufreq, powertop), bluetooth/upower, fwupd/LVFS firmware,
-  opensnitch.
+- **xps13** — laptop for schoolwork. systemd-boot, LUKS2 full disk encryption
+  (root + swap, single passphrase), laptop power management (thermald,
+  auto-cpufreq, powertop), bluetooth/upower, fwupd/LVFS firmware, opensnitch.
 - **bank** — headless home server (migrated off TrueNAS SCALE; runbook in
   `docs/truenas-migration.md`). systemd-boot, ZFS data pool `vault` + sanoid
   snapshots, Docker compose stacks, NFS server, Tailscale subnet router for the
@@ -46,8 +46,9 @@ hosts/
   antonixos/default.nix       desktop specifics (limine+SB, cachyos kernel, nvidia, steam)
   antonixos/wooting.nix       udev rule for Wooting keyboard (uaccess, drop power-switch tag)
   antonixos/hardware-configuration.nix
-  xps13/default.nix           laptop specifics (systemd-boot, bluetooth/upower, power mgmt, fwupd)
-  xps13/hardware-configuration.nix
+  xps13/default.nix           laptop specifics (systemd-boot, systemd initrd + resume for
+                              the LUKS setup, bluetooth/upower, power mgmt, fwupd)
+  xps13/hardware-configuration.nix  also holds the LUKS2 device entries (cryptroot/cryptswap)
   bank/default.nix            server specifics (ZFS `vault`, sanoid, docker, NFS server,
                               tailscale subnet router, sshd, localadm uid/gid 3000, lean HM)
   bank/hardware-configuration.nix
@@ -151,6 +152,7 @@ host file, not in a shared module.
 | Kernel      | `linuxPackages_cachyos`           | `linuxPackages_latest`             | nixpkgs default (ZFS-compatible) |
 | GPU / GUI   | NVIDIA (cachyos pkg, open module) | Intel (default)                    | none (no desktop bundle)         |
 | xkb layout  | `eu`                              | `dk`                               | n/a                              |
+| Disk encryption | none                          | LUKS2 (root + swap, one passphrase) | none                            |
 | Power/peripherals | none                        | thermald, auto-cpufreq, powertop, bluetooth, upower | none            |
 | Firmware    | none                              | fwupd/LVFS                         | none                             |
 | Extras      | Steam, gamescope, protontricks, sbctl | opensnitch                     | ZFS+sanoid, Docker, NFS server, subnet router, sshd |
@@ -196,6 +198,16 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   bundle) points at `home/default.nix`; bank carries its own `home-manager`
   block pointing at the slim `home/bank.nix`. HM settings changed in one place
   won't reach the other.
+- **xps13 is LUKS2-encrypted** (retrofitted in place with `cryptsetup reencrypt`,
+  no reinstall). Both volumes share one passphrase: `boot.initrd.systemd.enable`
+  (in `hosts/xps13/default.nix`) makes stage-1 retry it on the swap volume, so
+  boot shows a single prompt — don't remove that option or the second prompt
+  comes back. The initrd prompt uses the `dk-latin1` console keymap from
+  `locale.nix`. The UUIDs in `boot.initrd.luks.devices` are the LUKS *container*
+  UUIDs; the btrfs filesystem UUID predates the encryption and is unchanged.
+  Swap runs through `/dev/mapper/cryptswap` and is also the hibernation resume
+  device (`boot.resumeDevice`). Argon2id makes each unlock take a few seconds —
+  that's by design, not a hang. The other hosts are unencrypted.
 - **URL-scheme handlers** live in `xdg.mimeApps.defaultApplications` in
   `home/default.nix`. Enabling `xdg.mimeApps` makes `~/.config/mimeapps.list` a
   read-only store symlink, so apps can no longer self-register schemes at runtime
