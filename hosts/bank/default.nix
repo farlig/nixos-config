@@ -146,6 +146,10 @@
     rsync
     tmux
     pciutils
+    # Bandwidth test (`librespeed-cli`). LibreSpeed rather than an Ookla client:
+    # the speedtest.net clients are either unfree (ookla-speedtest) or scrape an
+    # API their own ToS forbids, which is what got the FOSS ones mothballed.
+    librespeed-cli
     # sqlite3 CLI with readline (the plain `sqlite` package's binary has no line
     # editing/history) — for poking at app databases like Jellyfin's.
     sqlite-interactive
