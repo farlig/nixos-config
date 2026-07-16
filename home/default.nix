@@ -12,6 +12,7 @@
     ./programs/fastfetch.nix
     ./programs/bitwarden.nix
     ./programs/noctalia.nix
+    ./programs/idle.nix
     ./programs/stylix.nix
     ./programs/termfilechooser.nix
     lazyvim.homeManagerModules.default
