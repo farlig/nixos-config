@@ -67,6 +67,18 @@
     });
   '';
 
+  # Fix the segfault described above at its root, rather than working around it.
+  # The agent inherits QT_STYLE_OVERRIDE=kvantum from the session and dies while
+  # rendering its dialog, so any action needing a real prompt (e.g. Bitwarden's
+  # auth_self com.bitwarden.Bitwarden.unlock) just fails to authenticate. Unit
+  # Environment= wins over the manager environment, so this unstyles the agent
+  # alone and leaves Kvantum in place everywhere else.
+  # Known wart: the dialog renders in a light palette. The agent is Qt6 while
+  # qt.platformTheme is session-wide "qt5ct", which no Qt6 app can load, so it
+  # gets no platform theme and falls back to Fusion's default light colours.
+  # Pointing it at qt6ct (which has the dark stylix palette) did not fix it.
+  systemd.user.services.niri-flake-polkit.environment.QT_STYLE_OVERRIDE = "Fusion";
+
   xdg.portal = {
     extraPortals = [
       pkgs.xdg-desktop-portal-termfilechooser
