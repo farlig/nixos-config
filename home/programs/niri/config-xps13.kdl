@@ -1,6 +1,15 @@
 prefer-no-csd
 
 input {
+    keyboard {
+        // Pin the layout here: with an empty xkb section niri follows
+        // systemd-localed, which stopped seeing the layout from
+        // services.xserver.xkb (00-keyboard.conf) as of systemd 261.
+        xkb {
+            layout "dk"
+        }
+    }
+
     touchpad {
         tap
         natural-scroll

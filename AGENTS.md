@@ -180,6 +180,13 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
 
 ## Gotchas already discovered (don't re-derive these)
 
+- **niri keyboard layout is pinned in the KDL** (`input.keyboard.xkb` in each
+  `config-<host>.kdl`). It used to be inherited from `services.xserver.xkb` via
+  systemd-localed, but systemd 261 stopped reading
+  `/etc/X11/xorg.conf.d/00-keyboard.conf`, silently dropping the layout to US.
+  Don't remove the xkb block; keep it and the host file's
+  `services.xserver.xkb.layout` in agreement.
+
 - **noctalia greeter sync** runs `pkexec noctalia-greeter-apply-appearance`.
   It's authorized without a prompt via a polkit rule in `modules/nixos/desktop.nix`
   (the KDE polkit agent segfaults under stylix's Kvantum style, and the helper's
