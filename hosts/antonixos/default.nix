@@ -41,6 +41,7 @@
     protonup-qt
     deadlock-mod-manager
     prismlauncher # modded Minecraft launcher (imports CurseForge/Modrinth packs)
+    nyaa # TUI for browsing/downloading torrents from nyaa.si
     sbctl
   ];
 
