@@ -31,7 +31,7 @@ output "DP-1" {
 }
 layout {
     background-color "00000020"
-    gaps 12
+    gaps 6
     center-focused-column "never"
     preset-column-widths {
         proportion 0.33333
