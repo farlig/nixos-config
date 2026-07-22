@@ -30,6 +30,21 @@
   # Latest mainline kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  # Disable secretmem (memfd_secret) system-wide. Bitwarden Desktop (>= 2026.5.0,
+  # via Electron/Chromium) parks its decrypted vault in memfd_secret memory,
+  # whose pages are unmapped from the kernel direct map and so cannot be written
+  # into a hibernation image — the kernel responds by disabling hibernation
+  # entirely (`/sys/power/disk` reads [disabled]) for as long as any secretmem
+  # user exists. That silently degraded HandleLidSwitch=suspend-then-hibernate to
+  # a plain, battery-draining s2idle suspend (there is no S3 on this firmware),
+  # so a bagged laptop ran flat instead of hibernating. Turning secretmem off
+  # makes memfd_secret fall back to ordinary memory and restores hibernation.
+  # Upstream bug: https://github.com/bitwarden/clients/issues/21661
+  # Trade-off: those secrets now live in normal, swappable RAM; but a hibernation
+  # image writes all of RAM to swap anyway, and cryptswap is LUKS-encrypted, so
+  # they are protected at rest regardless. Verify with `cat /sys/power/disk`.
+  boot.kernelParams = [ "secretmem.enable=0" ];
+
   # Wireless is managed by NetworkManager (enabled in modules/nixos/networking.nix).
   # NM's default wpa_supplicant backend already turns on networking.wireless.enable
   # itself (integrated D-Bus mode), so no explicit wpa_supplicant config is needed
