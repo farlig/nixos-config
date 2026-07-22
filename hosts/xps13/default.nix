@@ -62,7 +62,7 @@
   hardware.bluetooth.enable = true;
   services.upower.enable = true;
 
-  # Laptop power management. Lid close suspends, then hibernates after 45 min
+  # Laptop power management. Lid close suspends, then hibernates after 15 min
   # — the LUKS keys leave RAM at that point, so a bagged laptop ends up as
   # protected as if powered off, without losing the session on every lid close.
   # On AC the lid only locks (swayidle catches the logind lock signal; see
@@ -71,7 +71,7 @@
     HandleLidSwitch = "suspend-then-hibernate";
     HandleLidSwitchExternalPower = "lock";
   };
-  systemd.sleep.settings.Sleep.HibernateDelaySec = "45min";
+  systemd.sleep.settings.Sleep.HibernateDelaySec = "15min";
   services.thermald.enable = true;
   services.auto-cpufreq.enable = true;
   services.auto-cpufreq.settings = {
