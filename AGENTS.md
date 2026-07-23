@@ -102,9 +102,17 @@ home/
   `nixos-rebuild switch --flake ~/nixos-config#bank --target-host anton@bank
   --use-remote-sudo` — builds locally, copies over Tailscale, activates with
   remote sudo (bank's wheel sudo is passwordless, SSH is key-only).
-- **Agent-run rebuild:** use `sudo -A` so it prompts via the GUI askpass instead
-  of blocking on a dead TTY: `sudo -A nixos-rebuild switch --flake ~/nixos-config#<host>`.
-  `SUDO_ASKPASS` is set to ksshaskpass in `modules/nixos/packages.nix`.
+- **Agent-run rebuild:** use `pkexec` so authentication goes through the GUI
+  polkit agent (KDE), whose dialog accepts either the password *or* a fingerprint,
+  instead of blocking on a dead TTY:
+  `setsid pkexec nixos-rebuild switch --flake ~/nixos-config#<host> < /dev/null`.
+  The `setsid … < /dev/null` detaches from any controlling TTY so pkexec routes to
+  the registered GUI agent rather than a text prompt; the `~` is expanded by the
+  caller's shell, so pkexec gets an absolute flake path (it does not preserve cwd).
+  Fingerprint auth needs `services.fprintd.enable` + an enrolled finger (xps13
+  only). The old `sudo -A` + ksshaskpass path (`SUDO_ASKPASS` in
+  `modules/nixos/packages.nix`) still works for other agent commands, but its
+  dialog is password-only.
 - Eval-only check (no root, no build — use this to validate changes):
   `nix eval .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath`
 - Parse a single file: `nix-instantiate --parse <file>.nix`.
