@@ -27,6 +27,13 @@
   # Firmware updates via LVFS (Dell has good LVFS coverage).
   services.fwupd.enable = true;
 
+  # Flatpak — for the Bitwarden desktop app on this host. The nixpkgs Bitwarden
+  # build's biometric unlock panics on a null clientKeyPartB64 (upstream
+  # bitwarden/clients#15790); the Flatpak build works. The app, its flathub
+  # remote and the SSH-agent socket override are declared via nix-flatpak in
+  # home/programs/bitwarden-flatpak.nix (imported for xps13 in home/default.nix).
+  services.flatpak.enable = true;
+
   # Latest mainline kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 

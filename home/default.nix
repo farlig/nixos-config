@@ -1,4 +1,4 @@
-{ config, pkgs, lazyvim, hostName, ... }:
+{ config, pkgs, lazyvim, hostName, inputs, ... }:
 
 # Anton's home-manager configuration (was home/common.nix). Imported by the
 # system build via modules/nixos/home-manager.nix.
@@ -10,13 +10,18 @@
     ./programs/kitty.nix
     ./programs/yazi.nix
     ./programs/fastfetch.nix
-    ./programs/bitwarden.nix
     ./programs/noctalia.nix
     ./programs/idle.nix
     ./programs/stylix.nix
     ./programs/termfilechooser.nix
     lazyvim.homeManagerModules.default
-  ];
+  ] ++ (
+    # Bitwarden: the Flatpak build on xps13 (working biometric unlock), the
+    # nixpkgs build everywhere else. See home/programs/bitwarden-flatpak.nix.
+    if hostName == "xps13"
+    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/bitwarden-flatpak.nix ]
+    else [ ./programs/bitwarden.nix ]
+  );
 
   home.username = "anton";
   home.homeDirectory = "/home/anton";

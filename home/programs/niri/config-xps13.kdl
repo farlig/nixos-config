@@ -78,14 +78,14 @@ spawn-at-startup "noctalia"
 
 spawn-at-startup "equibop"
 
-// Bitwarden. Autostarted here rather than via the app's own "start on login"
-// (which writes ~/.config/autostart/bitwarden.desktop): using a stable PATH
-// binary avoids the store path going stale after an update. Do NOT declare that
-// autostart file via home-manager — it lands as a read-only /nix/store symlink,
-// and Bitwarden writes to that exact path on launch, hitting EROFS *before* it
-// registers its messagingService IPC listener, which silently breaks the app
-// menu, account switcher and SSH-agent handlers. Keep the in-app setting OFF.
-spawn-at-startup "bitwarden" "--autostart"
+// Bitwarden (Flatpak build on this host — see home/programs/bitwarden-flatpak.nix).
+// Autostarted here rather than via the app's own "start on login": declaring
+// ~/.config/autostart/bitwarden.desktop via home-manager lands it as a read-only
+// /nix/store symlink, and Bitwarden writes to that exact path on launch, hitting
+// EROFS *before* it registers its messagingService IPC listener, which silently
+// breaks the app menu, account switcher and SSH-agent handlers. Keep the in-app
+// setting OFF.
+spawn-at-startup "flatpak" "run" "com.bitwarden.desktop" "--autostart"
 
 // KDE Connect tray icon (the daemon itself is dbus-activated; firewall
 // ports are opened by programs.kdeconnect in modules/nixos/desktop.nix).

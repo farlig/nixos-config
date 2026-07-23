@@ -16,7 +16,8 @@
     inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
     equibop
     firefox
-    bitwarden-desktop
+    # bitwarden-desktop is installed per-host from home/programs/bitwarden.nix
+    # (nixpkgs build) or, on xps13, as a Flatpak via bitwarden-flatpak.nix.
     yazi
     mpv
     swaybg
