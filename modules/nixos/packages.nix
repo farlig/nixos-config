@@ -43,6 +43,7 @@
     claude-code
     mcp-nixos
     playerctl
+    brightnessctl
     unzip
     p7zip
     kdePackages.ksshaskpass
