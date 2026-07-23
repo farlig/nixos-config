@@ -52,7 +52,7 @@
 
       location.address = "Aalborg, Denmark";
 
-      lockscreen.fingerprint = false;
+      lockscreen.fingerprint = true;
 
       lockscreen_widgets = {
         enabled = false;

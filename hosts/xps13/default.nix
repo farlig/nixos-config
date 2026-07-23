@@ -62,6 +62,21 @@
   hardware.bluetooth.enable = true;
   services.upower.enable = true;
 
+  # Fingerprint reader (Goodix 27c6:63bc). Supported by libfprint's open
+  # goodixmoc driver, so no proprietary TOD blob is needed. Enabling fprintd
+  # makes security.pam.services.<name>.fprintAuth default to true across the
+  # whole PAM stack, giving fingerprint auth for sudo, polkit and the noctalia
+  # lock screen. Enroll a finger once with `fprintd-enroll` (test: `fprintd-verify`).
+  services.fprintd.enable = true;
+
+  # ...but NOT at the greetd login screen. pam_fprintd is `sufficient` and runs
+  # before pam_gnome_keyring, so authenticating with a fingerprint short-circuits
+  # the stack and the login keyring never gets its password — it stays locked and
+  # prompts later. A fingerprint fundamentally cannot unlock the keyring (it's
+  # encrypted with the password), so login stays password-only to keep the keyring
+  # auto-unlocking. Fingerprint is still used everywhere else, incl. the lock screen.
+  security.pam.services.greetd.fprintAuth = false;
+
   # Laptop power management. Lid close suspends, then hibernates after 15 min
   # — the LUKS keys leave RAM at that point, so a bagged laptop ends up as
   # protected as if powered off, without losing the session on every lid close.
