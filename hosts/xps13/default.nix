@@ -34,6 +34,33 @@
   # home/programs/bitwarden-flatpak.nix (imported for xps13 in home/default.nix).
   services.flatpak.enable = true;
 
+  # Bitwarden biometric unlock — both the desktop app and the Firefox extension —
+  # authenticates through this polkit action. The Flatpak can't register a system
+  # polkit policy itself (Bitwarden's docs have Flatpak users drop it into
+  # /usr/share/polkit-1/actions by hand), and we no longer install the nixpkgs
+  # bitwarden-desktop package that used to ship it. Register it declaratively, or
+  # unlock fails with "Action com.bitwarden.Bitwarden.unlock is not registered".
+  # Verbatim copy of apps/desktop/resources/com.bitwarden.desktop.policy upstream.
+  environment.systemPackages = [
+    (pkgs.writeTextDir "share/polkit-1/actions/com.bitwarden.Bitwarden.policy" ''
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE policyconfig PUBLIC
+       "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+       "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+      <policyconfig>
+          <action id="com.bitwarden.Bitwarden.unlock">
+            <description>Unlock Bitwarden</description>
+            <message>Authenticate to unlock Bitwarden</message>
+            <defaults>
+              <allow_any>no</allow_any>
+              <allow_inactive>no</allow_inactive>
+              <allow_active>auth_self</allow_active>
+            </defaults>
+          </action>
+      </policyconfig>
+    '')
+  ];
+
   # Latest mainline kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 

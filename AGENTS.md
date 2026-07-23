@@ -47,7 +47,8 @@ hosts/
   antonixos/wooting.nix       udev rule for Wooting keyboard (uaccess, drop power-switch tag)
   antonixos/hardware-configuration.nix
   xps13/default.nix           laptop specifics (systemd-boot, systemd initrd + resume for
-                              the LUKS setup, bluetooth/upower, power mgmt, fwupd)
+                              the LUKS setup, bluetooth/upower, power mgmt, fwupd,
+                              fprintd fingerprint, flatpak for the Bitwarden app)
   xps13/hardware-configuration.nix  also holds the LUKS2 device entries (cryptroot/cryptswap)
   bank/default.nix            server specifics (ZFS `vault`, sanoid, docker, NFS server,
                               tailscale subnet router, sshd, localadm uid/gid 3000, lean HM)
@@ -89,7 +90,10 @@ home/
     yazi.nix                  yazi file manager + clipboard plugin + keymap
     fastfetch.nix             declarative fastfetch config (hypr preset)
     noctalia.nix              noctalia shell settings (bar, dock, theme, wallpaper, session)
-    bitwarden.nix             bitwarden desktop + SSH agent (IdentityAgent socket)
+    bitwarden.nix             bitwarden desktop (nixpkgs) + SSH agent; antonixos/bank
+    bitwarden-flatpak.nix     xps13: bitwarden as a Flatpak (nix-flatpak) for working
+                              biometrics; SSH-agent socket pinned to the flatpak data
+                              dir. home/default.nix picks one of the two by hostName
     stylix.nix                per-app stylix opt-outs (niri/kitty/noctalia)
     termfilechooser.nix       file-chooser portal wired to yazi-in-kitty
 ```
@@ -165,7 +169,7 @@ host file, not in a shared module.
 | Disk encryption | none                          | LUKS2 (root + swap, one passphrase) | none                            |
 | Power/peripherals | bluetooth                   | thermald, auto-cpufreq, powertop, bluetooth, upower | none            |
 | Firmware    | none                              | fwupd/LVFS                         | none                             |
-| Extras      | Steam, gamescope, protontricks, sbctl | none                           | ZFS+sanoid, Docker, NFS server, subnet router, sshd |
+| Extras      | Steam, gamescope, protontricks, sbctl | fprintd fingerprint, Bitwarden via Flatpak | ZFS+sanoid, Docker, NFS server, subnet router, sshd |
 
 fwupd is laptop-only — never add it to antonixos. bank must NOT use the CachyOS
 kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
@@ -204,8 +208,51 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   escapes, not raw Nerd Font glyphs — the glyphs live in the Private Use Area and
   get silently stripped on edit. The logo uses `type: "kitty-direct"` (plain
   `kitty` needs image libs nixpkgs' fastfetch lacks) and an absolute path (no `~`).
-- **SSH agent** is Bitwarden (`home/programs/bitwarden.nix` sets `SSH_AUTH_SOCK`
-  and `IdentityAgent` to the bitwarden socket).
+- **SSH agent** is Bitwarden, and the socket path is per-host. antonixos/bank use
+  the nixpkgs build's `~/.bitwarden-ssh-agent.sock` (`home/programs/bitwarden.nix`);
+  xps13 uses the Flatpak's
+  `~/.var/app/com.bitwarden.desktop/data/.bitwarden-ssh-agent.sock`, pinned via a
+  `BITWARDEN_SSH_AUTH_SOCK` flatpak override (`home/programs/bitwarden-flatpak.nix`).
+  Each file sets `SSH_AUTH_SOCK` + ssh `IdentityAgent` to its own socket.
+- **Bitwarden is a Flatpak on xps13, the nixpkgs build elsewhere** —
+  `home/default.nix` branches on `hostName`, importing `bitwarden-flatpak.nix`
+  (+ the nix-flatpak HM module) for xps13 and `bitwarden.nix` otherwise. Why: the
+  nixpkgs build cannot enable biometric unlock — `setKeyForUser` panics on a null
+  `clientKeyPartB64` (upstream bitwarden/clients#15790) — while the Flatpak's
+  fingerprint unlock (polkit + the gnome-keyring secret service) works.
+  Consequences to respect:
+  - **The polkit unlock action must be registered.** Biometric unlock — desktop
+    *and* browser — authenticates via the polkit action
+    `com.bitwarden.Bitwarden.unlock`. The Flatpak can't install a system polkit
+    policy itself, and the nixpkgs `bitwarden-desktop` package that used to ship it
+    is no longer installed, so `hosts/xps13/default.nix` registers it via a
+    `writeTextDir` package. Without it, unlock fails "Action
+    com.bitwarden.Bitwarden.unlock is not registered".
+  - **Never declare `~/.config/autostart/bitwarden.desktop` via home-manager.** It
+    lands as a read-only /nix/store symlink; Bitwarden writes that exact path on
+    launch (`addOpenAtLogin`) and the resulting EROFS throw happens *before* it
+    registers its `messagingService` IPC listener — silently breaking the app menu
+    (File collapses to just Quit, no Settings), the account switcher, and the
+    SSH-agent handlers. Autostart Bitwarden from niri `spawn-at-startup` in
+    `config-<host>.kdl` instead, and keep the app's own "start on login" off. (This
+    bit us once, commit 67e9a52; reverted.)
+  - **Firefox extension biometric unlock is wired up by hand** in
+    `bitwarden-flatpak.nix` (upstream supports it — IPC transport #14836, sandbox
+    biometric fix #18625, ~2026.5 — but the Flatpak doesn't auto-write the browser
+    manifest, and its `desktop_proxy` bridge lives inside the sandbox). Three
+    parts: (1) the polkit action above; (2) a proxy wrapper (`writeShellScript`)
+    that runs `flatpak run --command=/app/Bitwarden/desktop_proxy
+    com.bitwarden.desktop`; (3) the native-messaging manifest
+    `com.8bit.bitwarden.json` (extension id `{446900e4-71c2-419f-a6a7-df9c091e268b}`)
+    pointing at that wrapper. **Manifest location matters**: this nixpkgs Firefox
+    (`MOZ_LEGACY_PROFILES=1`) reads it from `~/.mozilla/native-messaging-hosts/`
+    even though its profile is the XDG `~/.config/mozilla/firefox` —
+    `~/.config/mozilla/native-messaging-hosts` does NOT work. (#17965, once cited
+    here as "unsupported", is closed-completed and was about the desktop biometric
+    fix; browser integration works with this manual bridge.)
+  - **Linux has no first-unlock-with-biometrics**: after each app start you unlock
+    once with master password/PIN, then fingerprint works for the rest of the
+    session. Bitwarden autostarts and stays running, so that's once per boot.
 - **NFS shares** on the desktop hosts mount bank's exports at
   `/mnt/vault/{data,configs,localadm}` (`modules/nixos/network-share.nix`).
   They are `noauto`/automount over Tailscale — they only mount on access,
