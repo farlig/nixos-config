@@ -39,23 +39,51 @@
   services.zfs.trim.enable = true;
 
   ### Snapshots — replaces the TrueNAS periodic snapshot tasks ################
-  # Old policy: twice-daily, 2-week retention on configs (recursive) + data.
-  # sanoid takes at most one snapshot per period; `daily = 14` keeps ~2 weeks.
   # No replication target existed on the old box — snapshots are the only copies
   # and live on the same pool. Worth adding syncoid to an offsite pool later.
+  #
+  # Heads up: sanoid ships a built-in `template_default` (hourly=48, daily=90,
+  # monthly=6). A dataset section only *overrides* the keys it names, so a
+  # bare `daily = N` silently inherits hourly=48 and monthly=6. Zero out the
+  # periods you don't want explicitly, as done below.
   services.sanoid = {
     enable = true;
     datasets = {
+      # App config/data: recursive, ~2 weeks of daily (plus the inherited
+      # default hourly/monthly). vaultwarden below is carved out with its own
+      # policy and overrides this recursive rule for that child dataset.
       "vault/configs" = {
         recursive = true;
         autosnap = true;
         autoprune = true;
         daily = 14;
       };
+      # Vaultwarden holds the live password vault (bind-mounted to the
+      # container as /data) — worth keeping finer-grained than everything else.
+      # An explicit child entry overrides the recursive vault/configs rule above
+      # (sanoid's `recursive = yes` mode lets a named child define its own
+      # policy). A tapering pyramid: hourly for a month of fine-grained recovery
+      # from accidental edits, daily for a quarter, monthly out to a year.
+      # Deliberately NOT kept forever: a vault is a secrets store, so an
+      # unbounded snapshot would retain deleted credentials/keys indefinitely
+      # and quietly defeat their deletion. A year covers every realistic
+      # "restore that entry" window and then ages out.
+      "vault/configs/vaultwarden" = {
+        autosnap = true;
+        autoprune = true;
+        hourly = 720; # 30 days * 24
+        daily = 90;   # 3 months
+        monthly = 12; # 1 year, then aged out
+      };
+      # Bulk media/torrents: re-downloadable, so one week of daily snapshots is
+      # plenty. hourly/monthly zeroed to override template_default (otherwise
+      # the old daily-only config kept 48 hourly + 6 monthly, as it did before).
       "vault/data" = {
         autosnap = true;
         autoprune = true;
-        daily = 14;
+        hourly = 0;
+        daily = 7;
+        monthly = 0;
       };
     };
   };
