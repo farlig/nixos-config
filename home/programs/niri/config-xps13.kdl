@@ -13,6 +13,7 @@ input {
     touchpad {
         tap
         natural-scroll
+        scroll-factor 0.50
         // accel-speed 0.2
         // accel-profile "flat"
         // scroll-method "two-finger"
