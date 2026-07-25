@@ -12,6 +12,8 @@
       ls = "lsd";
       cat = "bat";
       update = "sudo nixos-rebuild switch --flake ~/nixos-config#$HOST";
+      # Bump every flake input in flake.lock (doesn't rebuild — run `update` after).
+      flupdate = "nix flake update --flake ~/nixos-config";
       # Deploy the headless `bank` server from here: build the closure locally,
       # copy it over Tailscale, activate with remote sudo. Works from any desktop
       # host (antonixos/xps13) whose anton key is authorized on bank.
