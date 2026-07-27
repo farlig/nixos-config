@@ -31,8 +31,16 @@
       # remote script is a quoted heredoc so nothing expands locally — $db and the
       # SQL (backticks and all) reach bank verbatim. An EXIT trap guarantees the
       # stack comes back up even if the backup or SQL step fails.
+      #
+      # The remote output streams back over SSH; we tee it to a timestamped log
+      # on *this* machine (not bank) so each run leaves a record locally. zsh's
+      # $pipestatus[1] preserves ssh's real exit code past the tee pipe.
       uc() {
-        ssh anton@bank 'bash -s' <<'REMOTE'
+        local logdir=''${XDG_STATE_HOME:-$HOME/.local/state}/jellyfin-uc
+        mkdir -p "$logdir"
+        local log="$logdir/uc-$(date +%Y%m%d-%H%M%S).log"
+        {
+          ssh anton@bank 'bash -s' <<'REMOTE'
       set -euo pipefail
       cd /home/anton/stacks/jellyfin
       db=/mnt/vault/configs/jellyfin/data/jellyfin.db
@@ -46,7 +54,9 @@
       cp -f "$db" "$db.backup"
 
       echo "==> Running dedupe SQL against UserData"
-      sqlite3 "$db" <<'SQL'
+      # select changes() after the delete reports how many rows it removed;
+      # sqlite3 prints only that count, which we capture to report back.
+      removed=$(sqlite3 "$db" <<'SQL'
       delete from `UserData`
       where CustomDataKey IN (
         select CustomDataKey
@@ -54,10 +64,16 @@
         group by UserId, CustomDataKey
         having count(*) > 1
       );
+      select changes();
       SQL
+      )
 
-      echo "==> Dedupe complete"
+      echo "==> Dedupe complete — removed $removed duplicate UserData rows"
       REMOTE
+        } 2>&1 | tee "$log"
+        local rc=$pipestatus[1]
+        print "==> Log saved to $log"
+        return $rc
       }
     '';
 
