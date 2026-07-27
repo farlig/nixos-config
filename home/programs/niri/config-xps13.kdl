@@ -37,8 +37,8 @@ layout {
     default-column-width { proportion 0.5; }
 
     focus-ring {
-        width 2
-        active-color "#7fc8ff"
+        width 3
+        active-color "#7fc8ffcc"
         inactive-color "#505050"
     }
 
