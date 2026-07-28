@@ -170,13 +170,19 @@
   services.tailscale.extraSetFlags = [ "--advertise-routes=192.168.1.0/24" ];
 
   ### NFS server — the three exports carried over from TrueNAS ################
-  # all_squash maps every client to uid/gid 3000 (localadm), matching on-disk
-  # ownership. Clients are the Tailscale CGNAT range.
+  # all_squash maps every client to the per-export anon identity, matching the
+  # on-disk ownership of each tree so clients can create AND delete files
+  # (deletion needs write on the *parent dir*, so the squash id must own it):
+  #   data     -> 3001:3001 (apps)     — its contents are owned by the stacks
+  #   configs  -> 3001:3001 (apps)     — mostly stack-owned; root-owned subtrees
+  #                                       stay read-only over NFS by design
+  #   localadm -> 3000:3000 (localadm) — that home is genuinely 3000-owned
+  # Clients are the Tailscale CGNAT range.
   services.nfs.server = {
     enable = true;
     exports = ''
-      /mnt/vault/data          100.64.0.0/10(rw,sec=sys,all_squash,anonuid=3000,anongid=3000,no_subtree_check)
-      /mnt/vault/configs       100.64.0.0/10(rw,sec=sys,all_squash,anonuid=3000,anongid=3000,no_subtree_check)
+      /mnt/vault/data          100.64.0.0/10(rw,sec=sys,all_squash,anonuid=3001,anongid=3001,no_subtree_check)
+      /mnt/vault/configs       100.64.0.0/10(rw,sec=sys,all_squash,anonuid=3001,anongid=3001,no_subtree_check)
       /mnt/vault/home/localadm 100.64.0.0/10(rw,sec=sys,all_squash,anonuid=3000,anongid=3000,subtree_check)
     '';
   };
