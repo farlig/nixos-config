@@ -200,6 +200,31 @@ in
     ZED_NOTIFY_VERBOSE = false;
   };
 
+  ### Storage status web UIs (replaces the TrueNAS status pages) ##############
+  # Scrutiny = SMART/disk-health dashboard with history; its collector runs
+  # smartctl on its own schedule, independent of smartd above. Netdata = live
+  # ZFS pool/ARC + system metrics. Both bind 0.0.0.0 so the Caddy container can
+  # reverse-proxy them, and the ports are opened for direct Tailnet/LAN access.
+  # Scrutiny's default web port 8080 is already taken on this host, so it's moved
+  # to 8083; its bundled InfluxDB (localhost:8086) is internal, not proxied.
+  services.scrutiny = {
+    enable = true;
+    influxdb.enable = true;          # bundled InfluxDB2 backend on localhost:8086
+    collector.enable = true;         # runs smartctl periodically, POSTs to the web app
+    settings.web.listen.port = 8083; # 8080 is in use on bank
+  };
+  services.netdata = {
+    enable = true;                   # dashboard on :19999
+    # The default netdata package bundles no web UI (share/netdata/web has only
+    # swagger files), so the dashboard root 404s with "File does not exist".
+    # withCloudUi pulls in the v2 agent dashboard (a prebuilt blob fetched at
+    # build time); the local dashboard then works without any Netdata Cloud account.
+    package = pkgs.netdata.override { withCloudUi = true; };
+  };
+
+  # Reachable over Tailscale (bank:8083 / bank:19999) and to the Caddy container.
+  networking.firewall.allowedTCPPorts = [ 8083 19999 ];
+
   ### Docker — runs the compose stacks (exported from Portainer) ##############
   # Data-root defaults to /var/lib/docker on the fast NVMe root — deliberately
   # NOT on the spinning `vault` pool. App config/data still lives under
