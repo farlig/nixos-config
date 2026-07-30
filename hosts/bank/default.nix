@@ -108,6 +108,14 @@ in
   # importing disks still claimed by another system). This is the 26.11 default.
   boot.zfs.forceImportRoot = false;
   services.zfs.autoScrub.enable = true;
+  # Scrub mid-month rather than the "monthly" default (1st @00:00): the SMART
+  # long test already runs on the 1st, so staggering the scrub to the 15th means
+  # the disks never do both full-surface passes at once, and vault gets a deep
+  # integrity check ~every two weeks (scrub / long-test alternating).
+  services.zfs.autoScrub.interval = "*-*-15 03:00:00";
+  # No-op on this all-HDD pool (HDDs don't support TRIM; the service errors are
+  # swallowed) — kept enabled purely to future-proof an eventual SSD pool. The
+  # NVMe ext4 root is trimmed separately by services.fstrim (on by default).
   services.zfs.trim.enable = true;
 
   ### Snapshots — replaces the TrueNAS periodic snapshot tasks ################
