@@ -223,6 +223,13 @@ in
   # NOT on the spinning `vault` pool. App config/data still lives under
   # /mnt/vault/configs and /mnt/vault/data via each stack's bind mounts.
   virtualisation.docker.enable = true;
+  # Weekly `docker system prune -f`: reclaims dangling images (the stacks pull
+  # updated images over time), stopped containers and unused networks. Default
+  # flags only — no --all, no --volumes — so images in use by running containers,
+  # named volumes, and the bind mounts under /mnt/vault are all left untouched.
+  virtualisation.docker.autoPrune.enable = true;
+  # Cap the systemd journal at 5G (it defaults to ≤10% of the fs, ~90G here).
+  services.journald.extraConfig = "SystemMaxUse=5G";
   # Let anton drive docker without sudo (merges with the groups in users.nix).
   # `apps` is the gid the compose stacks run as (PUID/PGID 3001, carried over
   # from TrueNAS) — several config trees under /mnt/vault/configs are owned
