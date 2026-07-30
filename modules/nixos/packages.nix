@@ -48,6 +48,13 @@ in
     bat
     lsd
     spotify
+    # Music/video downloaders. yt-dlp for ad-hoc grabs + format inspection
+    # (`yt-dlp -F`); spotdl wraps it to tag downloads with Spotify metadata +
+    # cover art. Both use ffmpeg (above) as their postprocessor. Also on bank,
+    # where the music library lives and the bulk downloads run — see
+    # hosts/bank/default.nix.
+    yt-dlp
+    spotdl
     curl
     grim
     satty

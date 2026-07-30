@@ -383,6 +383,15 @@ in
     # sqlite3 CLI with readline (the plain `sqlite` package's binary has no line
     # editing/history) — for poking at app databases like Jellyfin's.
     sqlite-interactive
+    # Music downloaders — run here rather than a desktop so output lands
+    # straight in /mnt/vault/data/media without the NFS all_squash write dance,
+    # and the YouTube-Premium cookie file stays local to the box. yt-dlp for
+    # grabs/format inspection; spotdl wraps it for Spotify-sourced tags + cover
+    # art. Both shell out to ffmpeg, which the desktops get from packages.nix
+    # but this headless host otherwise lacks.
+    yt-dlp
+    spotdl
+    ffmpeg
     # Terminfo for kitty, so SSHing in from a kitty terminal (TERM=xterm-kitty)
     # doesn't break pagers/line-editing. This box has no GUI/kitty itself; it's
     # just the terminfo entry the remote side needs.
