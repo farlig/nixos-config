@@ -1,5 +1,77 @@
 { pkgs, inputs, hostName, ... }:
 
+let
+  # Discord webhook notifier — the replacement for TrueNAS's alert service.
+  # smartd (disk health) and ZED (ZFS pool events) both invoke this; it detects
+  # which one by the env vars they set and formats a Discord message. The webhook
+  # URL is a secret, so it is NOT baked into the store/repo: it is read at runtime
+  # from a root-only file provisioned by hand on the box (see the alerting section
+  # below for the one-line setup). If that file is missing the script no-ops
+  # rather than failing the caller.
+  discord-alert = pkgs.writeShellApplication {
+    name = "discord-alert";
+    # discord.sh (nixpkgs `discord-sh`) does the webhook POST + embed JSON; its
+    # wrapper already bundles curl/jq. This script just reads the secret, works
+    # out which caller invoked it, and builds the embed args.
+    runtimeInputs = with pkgs; [ discord-sh coreutils ];
+    text = ''
+      webhook_file=/etc/discord-alert.webhook
+
+      if [[ ! -r "$webhook_file" ]]; then
+        echo "discord-alert: $webhook_file missing or unreadable; skipping" >&2
+        exit 0
+      fi
+      url=$(tr -d '[:space:]' < "$webhook_file")
+      if [[ -z "$url" ]]; then
+        echo "discord-alert: webhook file is empty; skipping" >&2
+        exit 0
+      fi
+
+      host=$(uname -n)
+
+      # discord.sh has no read-webhook-from-file option, so pass the URL we read.
+      # Embed description caps at 4096 chars; keep a margin. Colour = severity.
+      args=( --webhook-url="$url" --username "bank ($host)" --timestamp )
+
+      if [[ -n "''${SMARTD_MESSAGE:-}" ]]; then
+        # smartd -M exec: a disk health warning. Orange bar.
+        args+=( --title "⚠️ SMART warning" --color "0xE67E22" )
+        args+=( --description "''${SMARTD_MESSAGE:0:3900}" )
+        [[ -n "''${SMARTD_DEVICESTRING:-}" ]] && args+=( --field "Device;''${SMARTD_DEVICESTRING};true" )
+        [[ -n "''${SMARTD_FAILTYPE:-}" ]] && args+=( --field "Failure;''${SMARTD_FAILTYPE};true" )
+      elif [[ -n "''${ZEVENT_EID:-}" || -n "''${ZEVENT_SUBCLASS:-}" ]]; then
+        # ZED as ZED_EMAIL_PROG: message on stdin, context in ZEVENT_*. Red bar.
+        body="(no details)"
+        [[ ! -t 0 ]] && body=$(cat)
+        args+=( --title "🛑 ZFS ''${ZEVENT_SUBCLASS:-event}" --color "0xE74C3C" )
+        args+=( --description "''${body:0:3900}" )
+        [[ -n "''${ZEVENT_POOL:-}" ]] && args+=( --field "Pool;''${ZEVENT_POOL};true" )
+        [[ -n "''${ZEVENT_EID:-}" ]] && args+=( --field "Event ID;''${ZEVENT_EID};true" )
+      else
+        # Manual test: `sudo discord-alert ["title"] ["body"]`. Blue bar.
+        body="Test notification from $host"
+        [[ -n "''${2:-}" ]] && body="$2"
+        [[ -z "''${2:-}" && ! -t 0 ]] && body=$(cat)
+        args+=( --title "''${1:-🔔 test alert}" --color "0x3498DB" --description "''${body:0:3900}" )
+      fi
+
+      if ! discord.sh "''${args[@]}" >/dev/null; then
+        echo "discord-alert: discord.sh failed to send" >&2
+      fi
+      exit 0
+    '';
+  };
+
+  # Shared smartd directive string: monitor everything (-a), enable offline
+  # testing (-o on), schedule short self-tests daily @02:00 and a long test
+  # monthly on the 1st @03:00 (a full-surface long test is a ~day-long scan on
+  # 18TB disks, so monthly — staggered two weeks off the mid-month scrub below —
+  # not weekly), and on any warning run discord-alert instead of mailing (-M exec
+  # replaces the default mailer, so no MTA is needed). -m root only sets
+  # $SMARTD_ADDRESS for the script; smartd sends no mail of its own.
+  smartdOpts = "-a -o on -s (S/../.././02|L/../01/./03) -m root -M exec ${discord-alert}/bin/discord-alert";
+in
+
 # bank — the home server, migrated from a TrueNAS SCALE box. Headless: it imports
 # the host-agnostic base (NOT ../../modules/nixos, which is the desktop bundle)
 # and layers ZFS, Docker, NFS and snapshots on top. See docs/truenas-migration.md
@@ -86,6 +158,38 @@
         monthly = 0;
       };
     };
+  };
+
+  ### Health alerting — Discord webhook (replaces TrueNAS alert service) ######
+  # One-time setup on the box (the URL is a secret, kept out of git/store):
+  #   umask 077 && printf '%s' 'https://discord.com/api/webhooks/…' \
+  #     > /etc/discord-alert.webhook
+  # (root:root 0600). Test end-to-end once it's in place:
+  #   sudo discord-alert "bank alerting online" "smartd + ZED wired up"
+  # Both smartd and ZED funnel through the `discord-alert` script defined above.
+
+  # SMART — disk health. autodetect is on by default, so every disk is watched;
+  # defaults.autodetected inherits defaults.monitored, but set both explicitly so
+  # the -M exec hook applies no matter how a device gets picked up.
+  services.smartd = {
+    enable = true;
+    defaults.monitored = smartdOpts;
+    defaults.autodetected = smartdOpts;
+  };
+
+  # ZFS — pool events. ZED's stock notify zedlets (statechange/data/scrub_finish)
+  # dispatch through zed_notify_email, which runs ZED_EMAIL_PROG with the message
+  # on stdin. Point that at discord-alert instead of a mailer (enableMail stays
+  # off, so no sendmail/assertion). VERBOSE=0 means only faults, data errors and
+  # *failed* scrubs alert — a clean scrub stays silent. ADDR must be set or the
+  # email path short-circuits; OPTS=@ADDRESS@ avoids passing the (quote-fragile)
+  # subject as an argument — the script builds its title from ZEVENT_* instead.
+  services.zfs.zed.settings = {
+    ZED_EMAIL_ADDR = [ "root" ];
+    ZED_EMAIL_PROG = "${discord-alert}/bin/discord-alert";
+    ZED_EMAIL_OPTS = "@ADDRESS@";
+    ZED_NOTIFY_INTERVAL_SECS = 3600;
+    ZED_NOTIFY_VERBOSE = false;
   };
 
   ### Docker — runs the compose stacks (exported from Portainer) ##############
@@ -236,6 +340,9 @@
     rsync
     tmux
     pciutils
+    # Discord health-alert notifier (smartd + ZED call it automatically; this
+    # puts it on PATH so `sudo discord-alert …` can send a manual test).
+    discord-alert
     # Bandwidth test (`librespeed-cli`). LibreSpeed rather than an Ookla client:
     # the speedtest.net clients are either unfree (ookla-speedtest) or scrape an
     # API their own ToS forbids, which is what got the FOSS ones mothballed.
