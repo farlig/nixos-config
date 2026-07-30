@@ -10,6 +10,7 @@
     ./programs/kitty.nix
     ./programs/yazi.nix
     ./programs/fastfetch.nix
+    ./programs/mpd.nix
     ./programs/noctalia.nix
     ./programs/idle.nix
     ./programs/stylix.nix
