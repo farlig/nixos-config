@@ -212,6 +212,7 @@ in
     enable = true;
     influxdb.enable = true;          # bundled InfluxDB2 backend on localhost:8086
     collector.enable = true;         # runs smartctl periodically, POSTs to the web app
+    collector.schedule = "*-*-* *:00:00"; # hourly (default is once daily at midnight)
     settings.web.listen.port = 8083; # 8080 is in use on bank
   };
 
