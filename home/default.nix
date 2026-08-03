@@ -22,6 +22,12 @@
     if hostName == "xps13"
     then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/bitwarden-flatpak.nix ]
     else [ ./programs/bitwarden.nix ]
+  ) ++ (
+    # Twintail Launcher (anime-game launcher) is a Flathub Flatpak, gaming
+    # desktop only. Pull in the nix-flatpak HM module for this host too.
+    if hostName == "antonixos"
+    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/twintail.nix ]
+    else [ ]
   );
 
   home.username = "anton";

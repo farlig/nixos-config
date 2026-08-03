@@ -48,6 +48,12 @@
   # Bluetooth (controllers, headphones). upower stays laptop-only.
   hardware.bluetooth.enable = true;
 
+  # Flatpak — for the Twintail Launcher (anime-game launcher) from Flathub, which
+  # isn't packaged in nixpkgs. The app and its flathub remote are declared via
+  # nix-flatpak in home/programs/twintail.nix (imported for antonixos in
+  # home/default.nix).
+  services.flatpak.enable = true;
+
   programs.steam = {
     enable = true;
     extraCompatPackages = [ pkgs.proton-ge-bin ];
