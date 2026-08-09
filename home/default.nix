@@ -57,6 +57,14 @@
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
+      # Firefox is the browser. chromium is installed only for usevia.app's
+      # WebHID (see modules/nixos/packages.nix); without pinning these, xdg
+      # falls back to scanning desktop files and chromium-browser.desktop sorts
+      # ahead of firefox.desktop, silently stealing http/https/html.
+      "x-scheme-handler/http" = "firefox.desktop";
+      "x-scheme-handler/https" = "firefox.desktop";
+      "text/html" = "firefox.desktop";
+      "application/xhtml+xml" = "firefox.desktop";
       "x-scheme-handler/discord" = "equibop.desktop";
       "x-scheme-handler/claude-cli" = "claude-code-url-handler.desktop";
       "x-scheme-handler/deadlock-mod-manager" = ".deadlock-mod-manager-wrapped-handler.desktop";
