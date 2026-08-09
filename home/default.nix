@@ -26,7 +26,7 @@
     # Twintail Launcher (anime-game launcher) is a Flathub Flatpak, gaming
     # desktop only. Pull in the nix-flatpak HM module for this host too.
     if hostName == "antonixos"
-    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/twintail.nix ]
+    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/twintail.nix ./programs/sober.nix ]
     else [ ]
   );
 
