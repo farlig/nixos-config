@@ -6,7 +6,7 @@
   imports = [
     ../../modules/nixos
     ./hardware-configuration.nix
-    ./wooting.nix
+    ./udev.nix
   ];
 
   networking.hostName = "antonixos";
