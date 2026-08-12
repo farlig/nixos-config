@@ -20,7 +20,6 @@
     # External flake modules, wired in one place instead of per-host
     inputs.chaotic.nixosModules.default
     inputs.stylix.nixosModules.stylix
-    inputs.niri.nixosModules.niri
     inputs.noctalia-greeter.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
   ];

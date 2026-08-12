@@ -57,8 +57,9 @@ modules/nixos/                shared config, split by concern
   base.nix                    host-agnostic foundation: nix, locale, networking, boot,
                               users, caches + system.stateVersion. ALL hosts get this.
   default.nix                 the desktop/laptop bundle: base.nix + GUI modules below
-                              + external flake modules (chaotic, stylix, niri, noctalia,
+                              + external flake modules (chaotic, stylix, noctalia,
                               home-manager). antonixos/xps13 import this; bank does NOT.
+                              niri is nixpkgs' own programs.niri module (no flake input).
   nix.nix                     nix daemon settings, GC, allowUnfree, insecure pkgs
   boot.nix                    EFI vars only (bootloader is per-host; quiet/splash boot
                               is desktop-only and lives in desktop.nix)
@@ -81,7 +82,7 @@ home/
   bank.nix                    lean HM profile for bank: zsh-headless, nvim, yazi only
   programs/
     niri/niri.nix             picks config-<host>.kdl by hostName
-    niri/config-antonixos.kdl raw niri config (edited directly, NOT via niri-flake options)
+    niri/config-antonixos.kdl raw niri config (edited directly, NOT via a Nix settings API)
     niri/config-xps13.kdl
     zsh.nix                   zsh + powerlevel10k + aliases (incl. `update`, `bupdate`)
     zsh-headless.nix          lean zsh for bank (starship prompt; no p10k/lsd/bat/fastfetch)
@@ -126,7 +127,8 @@ home/
 ## Where things live (quick index)
 
 - **A niri keybind / window-rule / startup app** → `home/programs/niri/config-<host>.kdl`
-  (raw KDL, hand-written — this repo does *not* use niri-flake's nix settings API).
+  (raw KDL, hand-written — niri comes from nixpkgs' `programs.niri` module, which
+  has no config settings API; this file is the whole config).
   The two KDL files are near-identical; keep them in sync when a change is generic.
 - **A shell alias / prompt / env var for the login shell** → `home/programs/zsh.nix`
   (desktops) and/or `home/programs/zsh-headless.nix` (bank) — they are separate
@@ -199,11 +201,35 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   Don't remove the xkb block; keep it and the host file's
   `services.xserver.xkb.layout` in agreement.
 
-- **noctalia greeter sync** runs `pkexec noctalia-greeter-apply-appearance`.
-  It's authorized without a prompt via a polkit rule in `modules/nixos/desktop.nix`
-  (the KDE polkit agent segfaults under stylix's Kvantum style, and the helper's
-  own policy action never binds). `security.polkit.enablePkexecWrapper = true` is
-  required because nixpkgs made the setuid pkexec wrapper opt-in.
+- **niri is nixpkgs' `programs.niri` module** (the niri-flake input was dropped —
+  sodiboo's repo went stale). That module is minimal, which means
+  `modules/nixos/desktop.nix` must supply things niri-flake used to bundle:
+  - **A polkit authentication agent** — the module ships none, so GUI auth
+    prompts (Bitwarden's `com.bitwarden.Bitwarden.unlock` auth_self, any
+    `pkexec` needing a prompt) would silently fail. desktop.nix runs
+    `polkit-gnome` as a `systemd.user.services` unit (`wantedBy = niri.service`).
+    It's the GTK agent on purpose: stylix themes its dialog and it dodges the
+    Qt/Kvantum render crash a KDE agent hits under this session.
+  - **`hardware.graphics.enable`** — not set by the module. antonixos sets its
+    own (NVIDIA); xps13 (Intel) relies on the `lib.mkDefault true` in desktop.nix.
+    Don't remove it or xps13 loses GPU accel.
+  - **Portal FileChooser** — the module defines `xdg.portal.config.niri` itself
+    (and sets FileChooser to gtk because `programs.niri.useNautilus = false`), so
+    desktop.nix must `lib.mkForce` the niri FileChooser to `termfilechooser`.
+    `wayland-session.nix` (pulled in by the module) already adds the gtk portal
+    and enables dconf/polkit/gnome-keyring, so those aren't re-declared.
+  Stylix has no niri target of its own (that came from niri-flake), so there is
+  **no** `stylix.targets.niri` opt-out — niri is themed by noctalia's templates.
+
+- **noctalia greeter sync** runs `pkexec noctalia-greeter-apply-appearance` on
+  every wallpaper/colour change (auto_sync), and its action defaults to
+  `auth_admin`. A polkit rule in `modules/nixos/desktop.nix` authorizes it
+  without a prompt by matching the action id `org.noctalia.greeter.apply-appearance`
+  for the active local wheel session. (noctalia's policy annotates `exec.path`
+  with the real store path, so pkexec binds this action by id — not the
+  `org.freedesktop.policykit.exec` fallback an older noctalia forced.)
+  `security.polkit.enablePkexecWrapper = true` is required because nixpkgs made
+  the setuid pkexec wrapper opt-in.
 - **fastfetch icons** in `home/programs/fastfetch.nix` are written as `\uXXXX`
   escapes, not raw Nerd Font glyphs — the glyphs live in the Private Use Area and
   get silently stripped on edit. The logo uses `type: "kitty-direct"` (plain

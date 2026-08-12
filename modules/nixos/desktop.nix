@@ -1,9 +1,17 @@
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, lib, ... }:
 
 # The graphical session shared by all hosts: niri, its greeter, the file-chooser
 # portal, fonts and the login shell.
 {
   programs.niri.enable = true;
+
+  # We run our own file chooser (termfilechooser, below) and don't want the
+  # nautilus portal dependency pulled in.
+  programs.niri.useNautilus = false;
+
+  # The niri module doesn't enable the GPU stack. xps13 (Intel) relies on this;
+  # antonixos overrides it with its own explicit hardware.graphics block.
+  hardware.graphics.enable = lib.mkDefault true;
 
   # Phone integration (clipboard/files/notifications) over the LAN — no
   # bluetooth involved. Opens TCP+UDP 1714-1764 in the firewall. The tray
@@ -25,6 +33,7 @@
   ];
   boot.plymouth.enable = true;
 
+  fonts.enableDefaultPackages = lib.mkDefault true;
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
     # Fallbacks so emoji and CJK render instead of tofu boxes.
@@ -45,53 +54,49 @@
   # opt-in, so without this pkexec can't switch users at all.
   security.polkit.enablePkexecWrapper = true;
 
-  # Authorize that one helper without a prompt. Two reasons a prompt is both
-  # unwanted and broken here:
-  #   1. The KDE polkit agent (niri-flake-polkit.service) segfaults rendering
-  #      its dialog under stylix's Kvantum QQC2 style ("module kvantum is not
-  #      installed"), so no auth dialog ever appears — the sync just fails.
-  #   2. The helper's own policy (org.noctalia.greeter.apply-appearance) never
-  #      binds: its exec.path annotation is the bare name while pkexec matches
-  #      the resolved path, so pkexec falls back to org.freedesktop.policykit.exec.
-  # Match that fallback action on the resolved program path. The helper only
-  # copies the user's own appearance into the greeter state dir, so granting it
-  # to the active local wheel session is low risk and makes auto_sync automatic.
+  # Authorize the greeter appearance-sync without a prompt. noctalia's auto_sync
+  # runs `pkexec noctalia-greeter-apply-appearance` on every wallpaper/colour
+  # change, and its action defaults to auth_admin — so it prompts each time. The
+  # helper only copies the user's own appearance into the greeter state dir, so
+  # granting it to the active local wheel session is low risk. noctalia's policy
+  # annotates exec.path with the real store path, so pkexec binds this action by
+  # id (not the org.freedesktop.policykit.exec fallback) — match it directly.
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
-      if (action.id == "org.freedesktop.policykit.exec" &&
-          action.lookup("program") &&
-          action.lookup("program").indexOf("noctalia-greeter-apply-appearance") !== -1 &&
+      if (action.id == "org.noctalia.greeter.apply-appearance" &&
           subject.active && subject.local && subject.isInGroup("wheel")) {
         return polkit.Result.YES;
       }
     });
   '';
 
-  # Fix the segfault described above at its root, rather than working around it.
-  # The agent inherits QT_STYLE_OVERRIDE=kvantum from the session and dies while
-  # rendering its dialog, so any action needing a real prompt (e.g. Bitwarden's
-  # auth_self com.bitwarden.Bitwarden.unlock) just fails to authenticate. Unit
-  # Environment= wins over the manager environment, so this unstyles the agent
-  # alone and leaves Kvantum in place everywhere else.
-  # Known wart: the dialog renders in a light palette. The agent is Qt6 while
-  # qt.platformTheme is session-wide "qt5ct", which no Qt6 app can load, so it
-  # gets no platform theme and falls back to Fusion's default light colours.
-  # Pointing it at qt6ct (which has the dark stylix palette) did not fix it.
-  systemd.user.services.niri-flake-polkit.environment.QT_STYLE_OVERRIDE = "Fusion";
+  # PolicyKit authentication agent for the niri session. nixpkgs' niri module
+  # ships no agent, so GUI auth prompts (e.g. Bitwarden's auth_self
+  # com.bitwarden.Bitwarden.unlock) need one running in the session. polkit-gnome
+  # is GTK, so stylix themes its dialog and it avoids the Qt/Kvantum rendering
+  # crash a KDE agent hits under this session's Kvantum style.
+  systemd.user.services.polkit-gnome = {
+    description = "polkit-gnome authentication agent";
+    wantedBy = [ "niri.service" ];
+    after = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+      Restart = "on-failure";
+      RestartSec = 1;
+      TimeoutStopSec = 10;
+    };
+  };
 
+  # The niri module already sets config.niri.default = [ "gnome" "gtk" ] and adds
+  # the gnome/gtk portals; it also points niri's FileChooser at gtk (because
+  # useNautilus is off), so force that one back to our terminal file chooser.
   xdg.portal = {
-    extraPortals = [
-      pkgs.xdg-desktop-portal-termfilechooser
-      pkgs.xdg-desktop-portal-gtk
-    ];
+    extraPortals = [ pkgs.xdg-desktop-portal-termfilechooser ];
     config = {
       common."org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
-      niri = {
-        # gnome/gtk fallback so screen recording etc. works. Needed on every
-        # host, so it lives here rather than being duplicated per-machine.
-        default = [ "gnome" "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
-      };
+      niri."org.freedesktop.impl.portal.FileChooser" = lib.mkForce "termfilechooser";
     };
   };
 }
