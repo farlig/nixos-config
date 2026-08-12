@@ -9,6 +9,14 @@
     # biometric unlock works where the nixpkgs build hits bitwarden/clients#15790).
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
+    # Prebuilt, weekly-updated nix-index database (nixos-unstable). Backs comma
+    # (`,`) so it can run programs without installing them, with no local
+    # `nix-index` run needed. Home-manager module in home/programs/comma.nix.
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     noctalia = {
       url = "github:noctalia-dev/noctalia";
       inputs.nixpkgs.follows = "nixpkgs";

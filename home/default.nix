@@ -15,6 +15,7 @@
     ./programs/idle.nix
     ./programs/stylix.nix
     ./programs/termfilechooser.nix
+    ./programs/comma.nix
     lazyvim.homeManagerModules.default
   ] ++ (
     # Bitwarden: the Flatpak build on xps13 (working biometric unlock), the

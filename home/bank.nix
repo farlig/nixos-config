@@ -10,6 +10,7 @@
     ./programs/zsh-headless.nix
     ./programs/nvim.nix
     ./programs/yazi.nix
+    ./programs/comma.nix
     lazyvim.homeManagerModules.default
   ];
 
