@@ -202,21 +202,24 @@ in
 
   ### Storage status web UI (replaces the TrueNAS status pages) ###############
   # Scrutiny = SMART/disk-health dashboard with history; its collector runs
-  # smartctl on its own schedule, independent of smartd above. Binds 0.0.0.0 so
-  # the Caddy container can reverse-proxy it; the port is opened for direct
-  # Tailnet/LAN access. Scrutiny's default web port 8080 is already taken on this
-  # host, so it's moved to 8083; its bundled InfluxDB (localhost:8086) is internal,
-  # not proxied. (No ZFS metrics dashboard here on purpose: ZFS failure alerting is
-  # ZED/Discord's job above, which a Netdata-style dashboard would only duplicate.)
-  services.scrutiny = {
-    enable = true;
-    influxdb.enable = true;          # bundled InfluxDB2 backend on localhost:8086
-    collector.enable = true;         # runs smartctl periodically, POSTs to the web app
-    collector.schedule = "*-*-* *:00:00"; # hourly (default is once daily at midnight)
-    settings.web.listen.port = 8083; # 8080 is in use on bank
-  };
+  # Scrutiny SMART/ZFS dashboard has MOVED to a Docker stack running the
+  # actively-maintained Staros-Labs fork (/home/anton/stacks/scrutiny), which
+  # adds ZFS pool monitoring the nixpkgs module (analogj's stale image) lacks.
+  # The container publishes the web UI on the same host port 8083, so Caddy and
+  # the firewall rule below are unchanged. The old module is parked (not removed)
+  # for rollback: its InfluxDB data survives untouched at /var/lib/influxdb2
+  # (a StateDirectory NixOS never garbage-collects), so re-enabling this block
+  # restores the previous dashboard with its history intact.
+  # services.scrutiny = {
+  #   enable = true;
+  #   influxdb.enable = true;          # bundled InfluxDB2 backend on localhost:8086
+  #   collector.enable = true;         # runs smartctl periodically, POSTs to the web app
+  #   collector.schedule = "*-*-* *:00:00"; # hourly (default is once daily at midnight)
+  #   settings.web.listen.port = 8083; # 8080 is in use on bank
+  # };
 
-  # Reachable over Tailscale (bank:8083) and to the Caddy container.
+  # Reachable over Tailscale (bank:8083) and to the Caddy container. The port is
+  # now served by the scrutiny Docker container instead of the module above.
   networking.firewall.allowedTCPPorts = [ 8083 ];
 
   ### Docker — runs the compose stacks (exported from Portainer) ##############
