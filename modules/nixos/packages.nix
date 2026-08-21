@@ -39,6 +39,8 @@ in
     chromium # WebHID-capable browser for usevia.app (Firefox lacks WebHID)
     # bitwarden-desktop is installed per-host from home/programs/bitwarden.nix
     # (nixpkgs build) or, on xps13, as a Flatpak via bitwarden-flatpak.nix.
+    # The CLI has no such split, so it lives here for both desktop hosts.
+    bitwarden-cli
     yazi
     mpv
     swaybg
@@ -73,6 +75,8 @@ in
     mcp-nixos
     playerctl
     brightnessctl
+    python3
+    fzf
     unzip
     p7zip
     kdePackages.ksshaskpass
