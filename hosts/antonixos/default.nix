@@ -54,6 +54,12 @@
   # home/default.nix).
   services.flatpak.enable = true;
 
+  # Runs AppImages directly (appimage-run + binfmt).
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
+
   programs.steam = {
     enable = true;
     extraCompatPackages = [ pkgs.proton-ge-bin ];
