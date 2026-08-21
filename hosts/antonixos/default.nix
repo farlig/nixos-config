@@ -43,7 +43,12 @@
     prismlauncher # modded Minecraft launcher (imports CurseForge/Modrinth packs)
     nyaa # TUI for browsing/downloading torrents from nyaa.si
     sbctl
+    xkeyboard_config # XKB layout data at a stable path, for foreign binaries
+    desktop-file-utils # update-desktop-database, which desktop apps shell out to
   ];
+
+  # Expose share/X11 (XKB layout data) on the system path.
+  environment.pathsToLink = [ "/share/X11" ];
 
   # Bluetooth (controllers, headphones). upower stays laptop-only.
   hardware.bluetooth.enable = true;
@@ -54,10 +59,30 @@
   # home/default.nix).
   services.flatpak.enable = true;
 
-  # Runs AppImages directly (appimage-run + binfmt).
-  programs.appimage = {
+  # Loader and library set for unpatched foreign binaries (AppImages, vendor
+  # blobs), which run as ordinary processes rather than in an FHS sandbox.
+  #
+  # The list is long because bundlers deliberately ship none of the libraries
+  # they expect every distro to have — the C++ runtime, X11, GL/GBM/Vulkan, xkb,
+  # fontconfig, the glib/GTK stack — so the host supplies those plus everything
+  # they pull in transitively (fribidi, gnutls, gmp, …). nix-ld's own default
+  # covers systemd and nix only, which is enough for CLI tools and nothing else.
+  programs.nix-ld = {
     enable = true;
-    binfmt = true;
+    libraries = with pkgs; [
+      stdenv.cc.cc.lib glib gtk3 cairo pango gdk-pixbuf harfbuzz atk
+      at-spi2-core at-spi2-atk dbus systemdLibs util-linux
+      fontconfig freetype expat libxml2 libsecret nss nspr sqlite icu
+      libdrm mesa libgbm libGL libglvnd libGLU vulkan-loader libepoxy libva
+      pipewire libxkbcommon wayland alsa-lib libpulseaudio openssl curl zlib
+      libgcrypt libgpg-error fribidi libthai libdatrie libselinux pcre2 libffi
+      graphite2 brotli zstd xz bzip2 libjpeg libpng libwebp libtiff libnotify
+      gnutls libtasn1 p11-kit nghttp2 libpsl libidn2 libunistring krb5 keyutils
+      gmp nettle e2fsprogs libcap
+      libX11 libXext libXrender libXrandr libXi
+      libXcursor libXfixes libXtst libxcb libXScrnSaver
+      libXcomposite libXdamage libxshmfence
+    ];
   };
 
   programs.steam = {
