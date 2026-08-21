@@ -72,6 +72,7 @@
       "x-scheme-handler/deadlock-modmanager" = ".deadlock-mod-manager-wrapped-handler.desktop";
       "x-scheme-handler/dlmm" = ".deadlock-mod-manager-wrapped-handler.desktop";
       "x-scheme-handler/statlocker-desktop" = "statlocker-companion.desktop";
+      "x-scheme-handler/bitwarden" = "bitwarden.desktop";
     };
   };
 }
