@@ -75,4 +75,9 @@
       "x-scheme-handler/bitwarden" = "bitwarden.desktop";
     };
   };
+
+  # Apps that re-register their URL scheme at launch replace mimeapps.list with
+  # a real file. Overwriting it on activation keeps rebuilds from failing once
+  # the .backup slot next to it is taken.
+  xdg.configFile."mimeapps.list".force = true;
 }
