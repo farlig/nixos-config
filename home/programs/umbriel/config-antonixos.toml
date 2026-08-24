@@ -1,0 +1,391 @@
+# Umbriel config for antonixos — ported from home/programs/niri/config-antonixos.kdl.
+#
+# Written as raw TOML for the same reason the niri config is raw KDL: this file
+# *is* the configuration, and the home-manager module takes a path directly.
+# `umbriel validate -c` runs against it at build time, so a syntax error or an
+# unknown action fails the rebuild rather than the session.
+#
+# Keybinds MERGE with Umbriel's compiled-in defaults — they do not replace them.
+# ConfigStore::load seeds defaultKeybinds() before parsing, and a parsed chord
+# only evicts the identical chord. There is no unbind syntax. So any default not
+# overridden below is still live; see the "inherited defaults" note near [keybinds].
+
+# noctalia renders its palette into ~/.config/umbriel/noctalia.toml via its
+# `umbriel` theme template. Included files are parsed first and this file
+# overrides them, so colours are deliberately left unset below.
+#
+# Keep this block byte-identical to what noctalia's umbriel/apply.sh would
+# write: the hook rebuilds the include list and copies it over config.toml,
+# which home-manager owns as a read-only store symlink. It only writes when the
+# result differs (`cmp -s`), so matching its output exactly makes it a no-op
+# instead of an EROFS failure on every theme change.
+[include]
+files = ["noctalia.toml"]
+
+[general]
+# `spawn:` and these autostart entries both run through /bin/sh -c, so they are
+# niri's `spawn-sh`, not `spawn`.
+autostart = [
+  "noctalia",
+  "equibop",
+  # Bitwarden. Autostarted here rather than via the app's own "start on login"
+  # (which writes ~/.config/autostart/bitwarden.desktop): using a stable PATH
+  # binary avoids the store path going stale after an update. Do NOT declare that
+  # autostart file via home-manager — it lands as a read-only /nix/store symlink,
+  # and Bitwarden writes to that exact path on launch, hitting EROFS *before* it
+  # registers its messagingService IPC listener, which silently breaks the app
+  # menu, account switcher and SSH-agent handlers. Keep the in-app setting OFF.
+  "bitwarden --autostart",
+  # KDE Connect tray icon (the daemon itself is dbus-activated; firewall
+  # ports are opened by programs.kdeconnect in modules/nixos/desktop.nix).
+  "kdeconnect-indicator",
+  "steam",
+  # Track the most-recently-active MPRIS player from session start so the
+  # media keys (bound to `playerctl --player playerctld`) target it.
+  "playerctld",
+  # Delay spotify so wireplumber is up first; otherwise spotify grabs audio
+  # early and resets the volume to 100.
+  "sleep 5; exec spotify",
+  # start-umbriel already imports the environment into systemd/dbus, but it does
+  # so *before* the compositor exists, so WAYLAND_DISPLAY isn't set yet. The
+  # termfilechooser backend is dbus-activated and captures that incomplete env;
+  # its kitty+yazi wrapper then falls back to the X11 GLFW backend and dies
+  # ("DISPLAY environment variable is missing"). Re-import and restart it here.
+  "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE; systemctl --user restart xdg-desktop-portal.service xdg-desktop-portal-termfilechooser.service",
+]
+
+# niri's `hotkey-overlay { skip-at-startup }`. Mod+Shift+Slash still opens it.
+show_cheatsheet = false
+
+# Closest analogue of niri's `debug { honor-xdg-activation-with-invalid-serial }`.
+focus_on_activate = true
+
+[workspaces]
+back_and_forth = false
+
+[appearance]
+prefer_no_csd = true
+# niri draws its `border` off and its `focus-ring` on at width 3, so the focus
+# ring maps onto Umbriel's single inner border and the outer ring stays off.
+border_width = 3
+outer_border_width = 0
+# niri sets this per window-rule (geometry-corner-radius 12); Umbriel is global.
+corner_radius = 12
+animation_ms = 250
+# border_focused / border_unfocused / backdrop_color and the whole [colors]
+# table come from noctalia.toml. To pin the niri palette instead, set them here
+# — this file wins over the include:
+#   border_focused = "#7FC8FFCC"   # niri focus-ring active
+#   border_unfocused = "#505050FF" # niri focus-ring inactive
+
+[appearance.blur]
+enabled = true
+optimized = true
+passes = 3
+radius = 3
+noise = 0.02
+brightness = 0.9
+contrast = 0.9
+saturation = 1.1
+
+# niri: shadow { softness 10; spread 4; offset x=0 y=0; color "#0007" }.
+# Umbriel has no `spread`.
+[appearance.shadow]
+enabled = true
+softness = 10
+offset_x = 0
+offset_y = 0
+color = "#00000077"
+
+[overview]
+zoom = 0.5
+# background_tint comes from noctalia.toml (niri used "#4c566a90").
+
+# niri's `layer-rule { place-within-backdrop true }` has no analogue — Umbriel's
+# overview paints its own backdrop from the two settings above.
+
+[layout]
+mode = "scrolling"
+gap = 6
+width_presets = [0.33333, 0.5, 0.66667]
+
+[layout.scrolling]
+direction = "horizontal"
+default_width_fraction = 0.5
+# Nearest analogue of niri's `center-focused-column "never"`.
+center_underfull_strip = false
+
+[output."DP-1"]
+mode = "3440x1440@164.900"
+scale = 1.0
+# Static, not dynamic, so Mod+1..9 behaves like niri. On a dynamic output
+# "if you switch to a workspace number beyond the current count, Umbriel uses
+# the last workspace", so Mod+5 on a fresh session would land on workspace 1.
+# The cost is that empty workspaces persist and workspace-next/previous walk
+# all nine without wrapping; set this to "dynamic" to trade back.
+workspaces = 9
+
+[input]
+middle_click_paste = true
+
+[input.keyboard]
+# Pinned here for the same reason as the niri config: systemd 261 stopped
+# reading /etc/X11/xorg.conf.d/00-keyboard.conf, so the layout is no longer
+# inherited from services.xserver.xkb. Keep this in agreement with
+# hosts/antonixos/default.nix.
+layout = "eu"
+repeat_rate = 25
+repeat_delay = 600
+
+[input.touchpad]
+tap = true
+natural_scroll = true
+
+[input.mouse]
+accel_profile = "flat"
+# Same libinput scale as niri's `accel-speed -0.55`.
+sensitivity = -0.55
+scroll_wheel_step = 60
+
+[input.cursor]
+theme = "breeze_cursors"
+size = 18
+hardware_cursor = true
+
+[input.focus]
+follows_mouse = false
+
+# ---------------------------------------------------------------------------
+# Keybinds
+# ---------------------------------------------------------------------------
+#
+# Inherited from Umbriel's defaults, deliberately not overridden (these chords
+# are unused in the niri config, so upstream's binding stands):
+#   Mod+M         window-toggle-maximize-to-edges
+#   Mod+P         window-toggle-pinned
+#   Mod+F1        window-focus-next
+#   Mod+Shift+1..9 / Mod+KP_1..9   move-to-workspace / workspace-switch
+#   Mod+Escape    session-quit  <- WATCH OUT: niri bound this to
+#                 toggle-keyboard-shortcuts-inhibit, which Umbriel has no
+#                 equivalent for, so the default stands. It does raise the
+#                 confirm dialog first. To neutralise it:
+#                     "Mod+Escape" = "cheatsheet-toggle"
+#
+# niri binds with no Umbriel equivalent, left unbound on purpose:
+#   Mod+W                     toggle-column-tabbed-display
+#   Mod+Shift+R               switch-preset-window-height
+#   Mod+Ctrl+R                reset-window-height
+#   Mod+Shift+Minus / +Equal  set-window-height -/+10%
+#   Mod+Shift+U/I, Mod+Shift+Page_Up/Down   move-workspace up/down
+#   Mod+Home / Mod+End        focus-column-first / -last
+#   Mod+Ctrl+Home / +End      move-column-to-first / -last
+#   Mod+Shift+V               switch-focus-between-floating-and-tiling
+#   Mod+Ctrl+C                center-visible-columns
+
+[keybinds]
+
+# --- Launchers and overlays ---
+"Mod+Shift+Slash" = "cheatsheet-toggle"
+"Mod+T" = "spawn:kitty"
+"Mod+Return" = "spawn:kitty"                        # Umbriel's own default, kept
+"Mod+D" = { action = "spawn:noctalia msg panel-toggle launcher", repeat = false }
+"Mod+O" = { action = "overview-toggle", repeat = false }
+"Mod+Q" = { action = "window-close", repeat = false }
+
+# --- Media, audio, brightness ---
+# Routed through playerctld so the keys hit the most-recently-active player
+# rather than a paused browser tab.
+# Note: unlike niri's allow-when-locked=true, NO keybind fires while the session
+# is locked — Umbriel gates every bind on the lock state and has no opt-out.
+"XF86AudioRaiseVolume" = "spawn:wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0"
+"XF86AudioLowerVolume" = "spawn:wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"
+"XF86AudioMute" = "spawn:wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+"XF86AudioMicMute" = "spawn:wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+"XF86AudioPlay" = "spawn:playerctl --player playerctld play-pause"
+"XF86AudioStop" = "spawn:playerctl --player playerctld stop"
+"XF86AudioPrev" = "spawn:playerctl --player playerctld previous"
+"XF86AudioNext" = "spawn:playerctl --player playerctld next"
+"XF86MonBrightnessUp" = "spawn:brightnessctl --class=backlight set +10%"
+"XF86MonBrightnessDown" = "spawn:brightnessctl --class=backlight set 10%-"
+
+# --- Focus a window / column ---
+"Mod+Left" = "window-focus-left"
+"Mod+Down" = "window-focus-down"
+"Mod+Up" = "window-focus-up"
+"Mod+Right" = "window-focus-right"
+"Mod+H" = "window-focus-left"
+"Mod+J" = "window-focus-down"
+"Mod+K" = "window-focus-up"
+"Mod+L" = "window-focus-right"
+
+# --- Move a window / column ---
+"Mod+Ctrl+Left" = "column-move-left"
+"Mod+Ctrl+Down" = "window-move-down"
+"Mod+Ctrl+Up" = "window-move-up"
+"Mod+Ctrl+Right" = "column-move-right"
+"Mod+Ctrl+H" = "column-move-left"
+"Mod+Ctrl+J" = "window-move-down"
+"Mod+Ctrl+K" = "window-move-up"
+"Mod+Ctrl+L" = "column-move-right"
+
+# --- Focus a monitor ---
+"Mod+Shift+Left" = "output-focus-left"
+"Mod+Shift+Down" = "output-focus-down"
+"Mod+Shift+Up" = "output-focus-up"
+"Mod+Shift+Right" = "output-focus-right"
+"Mod+Shift+H" = "output-focus-left"
+"Mod+Shift+J" = "output-focus-down"
+"Mod+Shift+K" = "output-focus-up"
+"Mod+Shift+L" = "output-focus-right"
+
+# --- Move a column to a monitor ---
+"Mod+Shift+Ctrl+Left" = "column-move-to-output-left"
+"Mod+Shift+Ctrl+Down" = "column-move-to-output-down"
+"Mod+Shift+Ctrl+Up" = "column-move-to-output-up"
+"Mod+Shift+Ctrl+Right" = "column-move-to-output-right"
+"Mod+Shift+Ctrl+H" = "column-move-to-output-left"
+"Mod+Shift+Ctrl+J" = "column-move-to-output-down"
+"Mod+Shift+Ctrl+K" = "column-move-to-output-up"
+"Mod+Shift+Ctrl+L" = "column-move-to-output-right"
+
+# --- Workspaces ---
+# niri stacks workspaces vertically, hence down/up mapping to next/previous.
+# Note these move a single *window*, not the whole column: Umbriel has no
+# column-to-workspace action.
+"Mod+Page_Down" = "workspace-next"
+"Mod+Page_Up" = "workspace-previous"
+"Mod+U" = "workspace-next"
+"Mod+I" = "workspace-previous"
+"Mod+Ctrl+Page_Down" = "window-move-to-workspace-next"
+"Mod+Ctrl+Page_Up" = "window-move-to-workspace-previous"
+"Mod+Ctrl+U" = "window-move-to-workspace-next"
+"Mod+Ctrl+I" = "window-move-to-workspace-previous"
+
+"Mod+1" = "workspace-switch:1"
+"Mod+2" = "workspace-switch:2"
+"Mod+3" = "workspace-switch:3"
+"Mod+4" = "workspace-switch:4"
+"Mod+5" = "workspace-switch:5"
+"Mod+6" = "workspace-switch:6"
+"Mod+7" = "workspace-switch:7"
+"Mod+8" = "workspace-switch:8"
+"Mod+9" = "workspace-switch:9"
+
+"Mod+Ctrl+1" = "window-move-to-workspace:1"
+"Mod+Ctrl+2" = "window-move-to-workspace:2"
+"Mod+Ctrl+3" = "window-move-to-workspace:3"
+"Mod+Ctrl+4" = "window-move-to-workspace:4"
+"Mod+Ctrl+5" = "window-move-to-workspace:5"
+"Mod+Ctrl+6" = "window-move-to-workspace:6"
+"Mod+Ctrl+7" = "window-move-to-workspace:7"
+"Mod+Ctrl+8" = "window-move-to-workspace:8"
+"Mod+Ctrl+9" = "window-move-to-workspace:9"
+
+# --- Scroll wheel ---
+# Umbriel has no cooldown-ms, so the two workspace binds lose niri's 150ms rate
+# limit. These also override Umbriel's own Mod+WheelUp/Down focus defaults.
+"Mod+WheelDown" = "workspace-next"
+"Mod+WheelUp" = "workspace-previous"
+"Mod+Ctrl+WheelDown" = "window-move-to-workspace-next"
+"Mod+Ctrl+WheelUp" = "window-move-to-workspace-previous"
+"Mod+WheelRight" = "window-focus-right"
+"Mod+WheelLeft" = "window-focus-left"
+"Mod+Ctrl+WheelRight" = "column-move-right"
+"Mod+Ctrl+WheelLeft" = "column-move-left"
+"Mod+Shift+WheelDown" = "window-focus-right"
+"Mod+Shift+WheelUp" = "window-focus-left"
+"Mod+Ctrl+Shift+WheelDown" = "column-move-right"
+"Mod+Ctrl+Shift+WheelUp" = "column-move-left"
+
+# --- Column composition ---
+# niri's brackets are consume-or-expel (bidirectional); Umbriel splits them into
+# one consume and one expel, so the bracket and comma/period pairs coincide.
+"Mod+BracketLeft" = "window-consume-left"
+"Mod+BracketRight" = "window-expel-right"
+"Mod+Comma" = "window-consume-left"
+"Mod+Period" = "window-expel-right"
+
+# --- Sizing ---
+"Mod+R" = "window-cycle-width"
+"Mod+F" = "window-toggle-maximize"
+"Mod+Shift+F" = "window-toggle-fullscreen"
+"Mod+Ctrl+F" = "window-toggle-maximize-to-edges"
+"Mod+C" = "window-center"
+"Mod+Minus" = "window-modify-width:-0.1"
+"Mod+Equal" = "window-modify-width:0.1"
+"Mod+V" = "window-toggle-floating"
+
+# --- Scratchpads (no niri equivalent; Umbriel's defaults, chords were free) ---
+"Mod+Space" = "scratchpad-toggle"
+"Mod+Shift+Space" = "window-move-to-scratchpad"
+"Mod+Ctrl+Space" = "window-restore-from-scratchpad"
+"Mod+Tab" = "scratchpad-focus-next"
+
+# --- Screenshot ---
+# A multi-line literal string so the nested " and ' need no escaping.
+"Print" = '''spawn:grim -t ppm -g "$(slurp -o -d -F monospace)" - | satty --filename - --copy-command='wl-copy --type image/png' --output-filename="$HOME/pictures/screenshots/screenshot from %Y-%m-%d %H:%M:%S.png" --action-on-enter="save-to-file,exit" --save-after-copy --early-exit --annotation-size-factor 2.0 --brush-smooth-history-size=5 --disable-notifications'''
+
+# --- Session ---
+"Mod+Shift+E" = "session-quit"
+"Ctrl+Alt+Delete" = "session-quit"
+"Mod+Shift+P" = "dpms-off"
+
+# ---------------------------------------------------------------------------
+# Window rules
+# ---------------------------------------------------------------------------
+
+[[window_rule]]
+match.app_id = "^kitty-float$"
+default_floating = true
+# niri used proportion 0.5 x 0.5; Umbriel sizes floats in pixels only.
+default_size = [1720, 720]
+
+# Covers both the host `firefox` and the Flatpak `org.mozilla.firefox`.
+[[window_rule]]
+match.app_id = "firefox$"
+match.title = "^Picture-in-Picture$"
+default_floating = true
+
+[[window_rule]]
+match.app_id = "^satty$"
+default_floating = true
+
+# niri expressed this as match ^steam$ with an exclude on the ^Steam$ title.
+# Umbriel window rules have no `exclude`, so float everything Steam opens and
+# then tile the main window back with a later, narrower rule.
+[[window_rule]]
+match.app_id = "^steam$"
+default_floating = true
+
+[[window_rule]]
+match.app_id = "^steam$"
+match.title = "^Steam$"
+default_floating = false
+
+[[window_rule]]
+match.app_id = "^steam$"
+match.title = "^notificationtoasts_\\d+_desktop$"
+default_position = { x = 10, y = 10, anchor = "bottom_right" }
+default_focused = false
+default_pinned = true
+
+[[window_rule]]
+match.app_id = "^dev.noctalia.Noctalia$"
+default_floating = true
+default_size = [1020, 900]
+
+# Raised by xdg-desktop-portal-umbriel when a client asks to screencast.
+[[window_rule]]
+match.app_id = "^dev.noctalia.UmbrielSharePicker$"
+default_floating = true
+default_size = [800, 600]
+
+# ---------------------------------------------------------------------------
+# Layer rules
+# ---------------------------------------------------------------------------
+
+[[layer_rule]]
+match.namespace = "^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+blur = true
+blur_ignore_alpha = 0.5
+blur_optimized = false

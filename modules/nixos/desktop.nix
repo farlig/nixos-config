@@ -3,7 +3,24 @@
 # The graphical session shared by all hosts: niri, its greeter, the file-chooser
 # portal, fonts and the login shell.
 {
+  imports = [ inputs.umbriel.nixosModules.default ];
+
   programs.niri.enable = true;
+
+  # Umbriel is a second, selectable session alongside niri — niri stays the
+  # greeter default. Its module registers the session, installs the compositor
+  # and wires the portal; the per-user config lives in home/programs/umbriel.
+  programs.umbriel = {
+    enable = true;
+    portalPackage =
+      inputs.xdg-desktop-portal-umbriel.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  };
+
+  # The noctalia greeter reads its session list from
+  # /run/current-system/sw/share/wayland-sessions, which nothing links here —
+  # services.displayManager isn't in play, greetd is. Without this the greeter
+  # has only its --session default and Umbriel can't be picked.
+  environment.pathsToLink = [ "/share/wayland-sessions" ];
 
   # We run our own file chooser (termfilechooser, below) and don't want the
   # nautilus portal dependency pulled in.
@@ -92,11 +109,14 @@
   # The niri module already sets config.niri.default = [ "gnome" "gtk" ] and adds
   # the gnome/gtk portals; it also points niri's FileChooser at gtk (because
   # useNautilus is off), so force that one back to our terminal file chooser.
+  # xdg-desktop-portal-umbriel ships its own config the same way, so the umbriel
+  # session needs the identical override.
   xdg.portal = {
     extraPortals = [ pkgs.xdg-desktop-portal-termfilechooser ];
     config = {
       common."org.freedesktop.impl.portal.FileChooser" = "termfilechooser";
       niri."org.freedesktop.impl.portal.FileChooser" = lib.mkForce "termfilechooser";
+      umbriel."org.freedesktop.impl.portal.FileChooser" = lib.mkForce "termfilechooser";
     };
   };
 }

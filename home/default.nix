@@ -26,8 +26,15 @@
   ) ++ (
     # Twintail Launcher (anime-game launcher) is a Flathub Flatpak, gaming
     # desktop only. Pull in the nix-flatpak HM module for this host too.
+    # Umbriel is antonixos-only as well: its config is a per-host TOML file and
+    # xps13 has no ported one.
     if hostName == "antonixos"
-    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/twintail.nix ./programs/sober.nix ]
+    then [
+      inputs.nix-flatpak.homeManagerModules.nix-flatpak
+      ./programs/twintail.nix
+      ./programs/sober.nix
+      ./programs/umbriel/umbriel.nix
+    ]
     else [ ]
   );
 
