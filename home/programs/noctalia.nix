@@ -15,8 +15,12 @@
         start = [ "workspaces" "wallpaper" "media" "cpu" ];
       };
 
-      backdrop.enable = true;
       backdrop.enabled = true;
+
+      control_center.calendar = {
+        show_events_card = false;
+        show_week_numbers = true;
+      };
 
       control_center.shortcuts = [
         { type = "caffeine"; }
@@ -155,6 +159,16 @@
         hidden = [ "equibop" "spotify" ];
         pinned = [ "proton.vpn.app.gtk" ];
       };
+
+      plugins.enabled = [
+        "nightwatch75/file-search"
+        "noctalia/kaomoji"
+        "noctalia/translator"
+      ];
+
+      # Only settings for plugins that are actually installed — noctalia warns
+      # about a plugin_settings entry with no loaded plugin behind it.
+      plugin_settings."nightwatch75/file-search".show_hidden = true;
     };
   };
 }
