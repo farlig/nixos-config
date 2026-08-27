@@ -25,11 +25,6 @@ Desktop stack (antonixos + xps13 only): **niri** (Wayland compositor),
 yazi, neovim (LazyVim), zsh. home-manager is wired in as a NixOS module for
 user `anton` on every host; bank gets a lean headless profile.
 
-**Umbriel** (noctalia's own wlroots/SceneFX compositor) is installed as a
-*second, selectable session* — niri stays the greeter default and the daily
-driver. Only antonixos has a ported config. Pick the session at the greeter;
-both compositors' configs coexist and only the running one is read.
-
 ## Layout
 
 The guiding rule: a host file contains only what makes that machine unique;
@@ -89,9 +84,6 @@ home/
     niri/niri.nix             picks config-<host>.kdl by hostName
     niri/config-antonixos.kdl raw niri config (edited directly, NOT via a Nix settings API)
     niri/config-xps13.kdl
-    umbriel/umbriel.nix       umbriel HM module (antonixos only), settings = the raw TOML
-    umbriel/config-antonixos.toml  raw umbriel config, ported from the niri KDL
-                              (edited directly; `umbriel validate` runs at build time)
     zsh.nix                   zsh + powerlevel10k + aliases (incl. `update`, `bupdate`)
     zsh-headless.nix          lean zsh for bank (starship prompt; no p10k/lsd/bat/fastfetch)
     nvim.nix                  neovim + lazyvim, defaultEditor
@@ -138,10 +130,6 @@ home/
   (raw KDL, hand-written — niri comes from nixpkgs' `programs.niri` module, which
   has no config settings API; this file is the whole config).
   The two KDL files are near-identical; keep them in sync when a change is generic.
-- **An Umbriel keybind / window-rule / startup app** → `home/programs/umbriel/config-antonixos.toml`
-  (raw TOML, hand-written, same rationale as the KDL). Umbriel is a *second*
-  session next to niri on antonixos only — a change to one compositor does not
-  reach the other, so port it by hand if it should apply to both.
 - **A shell alias / prompt / env var for the login shell** → `home/programs/zsh.nix`
   (desktops) and/or `home/programs/zsh-headless.nix` (bank) — they are separate
   configs on purpose; add to both if the alias makes sense on a server.
@@ -291,28 +279,6 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   - **Linux has no first-unlock-with-biometrics**: after each app start you unlock
     once with master password/PIN, then fingerprint works for the rest of the
     session. Bitwarden autostarts and stays running, so that's once per boot.
-- **Umbriel keybinds MERGE with its built-in defaults — they do not replace
-  them, and there is no unbind syntax.** `ConfigStore::load` seeds
-  `loaded.keybinds = defaultKeybinds()` *before* parsing the config, and each
-  parsed chord only evicts the byte-identical chord. So any default chord the
-  TOML doesn't name is still live. The one that bites: **`Mod+Escape` is
-  `session-quit`** (niri bound it to `toggle-keyboard-shortcuts-inhibit`, which
-  Umbriel has no equivalent for). Also inherited: `Mod+M`, `Mod+P`, `Mod+F1`,
-  `Mod+Shift+1..9`, `Mod+KP_1..9`. Use the in-session cheatsheet
-  (`Mod+Shift+Slash`) to see the *effective* map, not just the TOML.
-- **`~/.config/umbriel/config.toml` must carry `[include]` / `files = ["noctalia.toml"]`
-  verbatim.** noctalia's `umbriel` theme template (in `theme.templates.builtin_ids`)
-  writes the palette to `~/.config/umbriel/noctalia.toml`, and its `post_hook`
-  (`apply.sh`) then rewrites `config.toml` to add that include. home-manager owns
-  that path as a read-only store symlink, so the hook's `cp` would fail — except
-  it only writes `if ! cmp -s`, so a config whose include block already matches
-  what its awk emits makes the hook a no-op. Verified both ways: with the block,
-  the hook exits 0 and changes nothing; without it, `cp: Permission denied`.
-  Keep the two lines exactly as they are. (Umbriel resolves includes relative to
-  the symlink's directory, not the resolved store path, so the include works.)
-- **Umbriel has no `allow-when-locked`** — `matchKeybind` returns null whenever
-  the session is locked, so media/volume/brightness keys are dead on the lock
-  screen. niri passes them through; don't file this as a config bug.
 - **NFS shares** on the desktop hosts mount bank's exports at
   `/mnt/vault/{data,configs,localadm}` (`modules/nixos/network-share.nix`).
   They are `noauto`/automount over Tailscale — they only mount on access,

@@ -25,19 +25,6 @@
       url = "github:noctalia-dev/noctalia-greeter";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # Umbriel: noctalia's own wlroots/SceneFX compositor, installed next to niri
-    # as a second session. The `git+` fetcher is required, not `github:` — the
-    # package throws without the subprojects/scenefx submodule, which the tarball
-    # fetcher cannot supply. Upstream's flake sets `inputs.self.submodules`, so
-    # no `?submodules=1` is needed here.
-    umbriel = {
-      url = "git+https://github.com/noctalia-dev/umbriel";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    xdg-desktop-portal-umbriel = {
-      url = "github:noctalia-dev/xdg-desktop-portal-umbriel";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";

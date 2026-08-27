@@ -129,13 +129,7 @@
         source = "builtin";
 
         templates = {
-          # The umbriel template renders the palette to
-          # ~/.config/umbriel/noctalia.toml, which config-antonixos.toml pulls
-          # in via [include]. Its post_hook also rewrites config.toml to add
-          # that include — home-manager owns that path read-only, so the config
-          # carries the include verbatim to keep the hook a no-op. See the
-          # comment in home/programs/umbriel/config-antonixos.toml.
-          builtin_ids = [ "btop" "kitty" "niri" "umbriel" ];
+          builtin_ids = [ "btop" "kitty" "niri" ];
           community_ids = [ "neovim" "obsidian" "yazi" ];
         };
       };
