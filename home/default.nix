@@ -21,13 +21,13 @@
     # Bitwarden: the Flatpak build on xps13 (working biometric unlock), the
     # nixpkgs build everywhere else. See home/programs/bitwarden-flatpak.nix.
     if hostName == "xps13"
-    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/bitwarden-flatpak.nix ]
+    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/flatpak.nix ./programs/bitwarden-flatpak.nix ]
     else [ ./programs/bitwarden.nix ]
   ) ++ (
     # Twintail Launcher (anime-game launcher) is a Flathub Flatpak, gaming
     # desktop only. Pull in the nix-flatpak HM module for this host too.
     if hostName == "antonixos"
-    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/twintail.nix ./programs/sober.nix ]
+    then [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ./programs/flatpak.nix ./programs/twintail.nix ./programs/sober.nix ]
     else [ ]
   );
 

@@ -95,6 +95,10 @@ home/
     bitwarden-flatpak.nix     xps13: bitwarden as a Flatpak (nix-flatpak) for working
                               biometrics; SSH-agent socket pinned to the flatpak data
                               dir. home/default.nix picks one of the two by hostName
+    flatpak.nix               shared nix-flatpak policy (update on activation);
+                              imported alongside the nix-flatpak HM module
+    twintail.nix              antonixos: twintail launcher (Flathub Flatpak)
+    sober.nix                 antonixos: sober roblox player (Flathub Flatpak)
     stylix.nix                per-app stylix opt-outs (niri/kitty/noctalia)
     termfilechooser.nix       file-chooser portal wired to yazi-in-kitty
 ```
@@ -154,6 +158,10 @@ home/
   + portal config in `modules/nixos/desktop.nix`).
 - **A URL-scheme / default-app handler** (e.g. `discord://` → equibop) →
   `xdg.mimeApps.defaultApplications` in `home/default.nix`.
+- **A Flatpak app** → its own `home/programs/<app>.nix` with
+  `services.flatpak.packages`, imported from the matching `hostName` branch in
+  `home/default.nix` (that branch must also pull in the nix-flatpak HM module
+  and `./programs/flatpak.nix`). Flatpak-wide policy goes in `flatpak.nix`.
 
 ## Host differences
 
