@@ -49,7 +49,7 @@
         auto_hide = true;
         enabled = true;
         launcher_position = "start";
-        pinned = [ "equibop" "firefox" ];
+        pinned = [ "equibop" "helium" ];
         reserve_space = false;
         show_dots = true;
       };

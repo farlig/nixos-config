@@ -36,7 +36,6 @@ in
     inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
     equibop
     firefox
-    chromium # WebHID-capable browser for usevia.app (Firefox lacks WebHID)
     inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
     # bitwarden-desktop is installed per-host from home/programs/bitwarden.nix
     # (nixpkgs build) or, on xps13, as a Flatpak via bitwarden-flatpak.nix.

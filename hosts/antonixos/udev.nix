@@ -5,9 +5,9 @@
 {
   # QMK/VIA keyboards (incl. the FLX Virgo). This ships QMK's udev rules, whose
   # catch-all `KERNEL=="hidraw*" ... TAG+="uaccess"` grants the active session
-  # raw-HID access to *any* QMK/VIA board — so usevia.app (WebHID, chromium
-  # only) works for new keyboards without touching config — plus the bootloader
-  # rules for flashing firmware. No per-device rule needed.
+  # raw-HID access to *any* QMK/VIA board — so usevia.app (WebHID, hence a
+  # Chromium-based browser) works for new keyboards without touching config —
+  # plus the bootloader rules for flashing firmware. No per-device rule needed.
   hardware.keyboard.qmk.enable = true;
 
   services.udev.extraRules = ''
