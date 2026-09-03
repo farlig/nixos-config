@@ -17,6 +17,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Helium browser, which nixpkgs does not package. This flake unpacks
+    # upstream's prebuilt .deb the way nixpkgs packages Vivaldi/Brave; the
+    # version it ships trails upstream, so check it when updating.
+    helium = {
+      url = "github:oxcl/nix-flake-helium-browser";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     noctalia = {
       url = "github:noctalia-dev/noctalia";
       inputs.nixpkgs.follows = "nixpkgs";
