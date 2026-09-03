@@ -14,10 +14,9 @@
   # shortcuts still work — an nvidia + niri combination (niri#2682, sober#1771).
   # Two known fixes:
   #   1. Switch the Roblox renderer from Vulkan to OpenGL — stays on native
-  #      Wayland, so mouse-look/shift-lock keep working. This is what we use;
-  #      it's set via "use_opengl": true in Sober's own config.json
-  #      (~/.var/app/org.vinegarhq.Sober/config/sober/config.json — app runtime
-  #      state, persists across rebuilds, not managed here).
+  #      Wayland, so mouse-look/shift-lock keep working. This is the one in use;
+  #      it's `"use_opengl": true` in Sober's own config, which is app runtime
+  #      state inside the Flatpak's data dir and not managed here.
   #   2. Force XWayland (`--socket=x11 --nosocket=wayland`; needs
   #      xwayland-satellite, which niri runs). Also fixes typing but breaks
   #      mouse-look in games that force FPS/shift-lock. If OpenGL ever regresses,

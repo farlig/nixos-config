@@ -37,9 +37,9 @@
   # Bitwarden biometric unlock — both the desktop app and the Firefox extension —
   # authenticates through this polkit action. The Flatpak can't register a system
   # polkit policy itself (Bitwarden's docs have Flatpak users drop it into
-  # /usr/share/polkit-1/actions by hand), and we no longer install the nixpkgs
-  # bitwarden-desktop package that used to ship it. Register it declaratively, or
-  # unlock fails with "Action com.bitwarden.Bitwarden.unlock is not registered".
+  # /usr/share/polkit-1/actions by hand), and the nixpkgs bitwarden-desktop
+  # package that ships it is not installed on this host. Register it declaratively,
+  # or unlock fails with "Action com.bitwarden.Bitwarden.unlock is not registered".
   # Verbatim copy of apps/desktop/resources/com.bitwarden.desktop.policy upstream.
   environment.systemPackages = [
     (pkgs.writeTextDir "share/polkit-1/actions/com.bitwarden.Bitwarden.policy" ''
@@ -69,10 +69,10 @@
   # whose pages are unmapped from the kernel direct map and so cannot be written
   # into a hibernation image — the kernel responds by disabling hibernation
   # entirely (`/sys/power/disk` reads [disabled]) for as long as any secretmem
-  # user exists. That silently degraded HandleLidSwitch=suspend-then-hibernate to
-  # a plain, battery-draining s2idle suspend (there is no S3 on this firmware),
-  # so a bagged laptop ran flat instead of hibernating. Turning secretmem off
-  # makes memfd_secret fall back to ordinary memory and restores hibernation.
+  # user exists. With hibernation disabled, HandleLidSwitch=suspend-then-hibernate
+  # degrades to a plain, battery-draining s2idle suspend (there is no S3 on this
+  # firmware). Turning secretmem off makes memfd_secret fall back to ordinary
+  # memory, so hibernation stays available.
   # Upstream bug: https://github.com/bitwarden/clients/issues/21661
   # Trade-off: those secrets now live in normal, swappable RAM; but a hibernation
   # image writes all of RAM to swap anyway, and cryptswap is LUKS-encrypted, so
@@ -92,7 +92,7 @@
   };
 
   # Laptop peripherals/battery. upower is wanted only here — the desktop and
-  # server go without (bluetooth is also on antonixos these days).
+  # server go without (bluetooth is also enabled on antonixos).
   hardware.bluetooth.enable = true;
   services.upower.enable = true;
 

@@ -1,7 +1,7 @@
 { config, pkgs, lazyvim, hostName, inputs, ... }:
 
-# Anton's home-manager configuration (was home/common.nix). Imported by the
-# system build via modules/nixos/home-manager.nix.
+# Anton's home-manager configuration. Imported by the system build via
+# modules/nixos/home-manager.nix.
 {
   imports = [
     ./programs/niri/niri.nix
@@ -45,16 +45,10 @@
     projects = "${config.home.homeDirectory}/projects";
   };
 
-  # URL-scheme handlers. Equibop registers itself as the discord:// handler via
-  # Electron's setAsDefaultProtocolClient, but that never sticks on NixOS, so
-  # Discord invite links (discord.gg/…) opened in Firefox had nothing to hand
-  # off to. Setting it here makes it reproducible on a fresh install.
-  #
-  # NOTE: enabling xdg.mimeApps makes ~/.config/mimeapps.list a read-only
-  # symlink into the store, so apps can no longer self-register schemes at
-  # runtime. The other entries below were previously written imperatively by
-  # those apps (claude-cli login flow, deadlock mod manager); they're carried
-  # over here so nothing regresses. Add future runtime-registered schemes here.
+  # URL-scheme handlers. Enabling xdg.mimeApps makes ~/.config/mimeapps.list a
+  # read-only symlink into the store, so an app cannot register its own scheme at
+  # runtime (Electron's setAsDefaultProtocolClient silently no-ops). Every scheme
+  # the session should handle has to be listed here instead.
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {

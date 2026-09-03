@@ -1,7 +1,7 @@
 { pkgs, inputs, ... }:
 
-# System-wide packages available on every host (was
-# modules/configuration/common-packages.nix).
+# System-wide packages for the desktop hosts. Pulled in by the desktop bundle,
+# so the headless server never sees these.
 let
   # The XPS 13 webcam is an Intel IPU6 (ov01a10). Its raw /dev/video* nodes only
   # emit Bayer data, so apps that open V4L2 directly (Discord/Equibop) get no

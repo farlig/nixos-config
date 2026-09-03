@@ -5,8 +5,8 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
-    # Declarative Flatpak (used on xps13 for the Bitwarden flatpak, whose
-    # biometric unlock works where the nixpkgs build hits bitwarden/clients#15790).
+    # Declarative Flatpak management. Used for the apps that are only shipped
+    # as Flatpaks (Bitwarden on xps13, the Flathub-only launchers on antonixos).
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
     # Prebuilt, weekly-updated nix-index database (nixos-unstable). Backs comma
@@ -63,7 +63,7 @@
       };
     };
 
-  # All binary caches (including noctalia, previously here in `nixConfig`) are now
-  # declared once in modules/nixos/caches.nix. See the note there before adding a
-  # cache back here for first-build bootstrapping on a fresh machine.
+  # Binary caches are declared in modules/nixos/caches.nix, not in a `nixConfig`
+  # block here. See the note in that file before adding one back for first-build
+  # bootstrapping on a fresh machine.
 }

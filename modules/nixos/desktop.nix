@@ -1,7 +1,8 @@
 { pkgs, inputs, lib, ... }:
 
-# The graphical session shared by all hosts: niri, its greeter, the file-chooser
-# portal, fonts and the login shell.
+# The graphical session shared by the desktop hosts: niri, its greeter, the
+# file-chooser portal, fonts and the polkit agent. Pulled in by ./default.nix,
+# so the headless server never gets it.
 {
   programs.niri.enable = true;
 
@@ -18,8 +19,8 @@
   # indicator is spawned from each host's niri config.
   programs.kdeconnect.enable = true;
 
-  # Quiet, graphical boot (was in the shared boot.nix; the headless server
-  # keeps a plain verbose console instead).
+  # Quiet, graphical boot. Desktop-only: the headless server keeps a plain
+  # verbose console, so this does not belong in the shared boot.nix.
   boot.consoleLogLevel = 3;
   boot.initrd.verbose = false;
   boot.kernelParams = [

@@ -1,9 +1,8 @@
 { ... }:
 
-# Binary caches — the single source of truth for all substituters. Replaces the
-# auto-importing modules/cachix.nix + modules/cachix/ folder (no more `cachix use`
-# clobber) and also absorbs the noctalia cache that used to live in flake.nix
-# `nixConfig`, so every cache is declared in one place.
+# Binary caches — the single source of truth for all substituters. Every cache
+# the hosts use is declared here, including the ones a flake input would
+# otherwise ask for in its own `nixConfig`.
 #
 # Note: flake `nixConfig` and NixOS `nix.settings` are not identical. `nixConfig`
 # applies (with a trust prompt) while evaluating/building the flake itself, which

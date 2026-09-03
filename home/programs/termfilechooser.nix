@@ -1,8 +1,7 @@
 { lib, pkgs, ... }:
 
-# xdg-desktop-portal-termfilechooser wired to yazi in kitty. This is a
-# home-manager module (it writes ~/.config and sets session vars), so it now
-# lives under home/ instead of modules/ where it originally sat.
+# xdg-desktop-portal-termfilechooser wired to yazi in kitty. A home-manager
+# module: it writes into ~/.config and sets the session vars the portal reads.
 {
   xdg.configFile."xdg-desktop-portal-termfilechooser/config" = {
     text = ''

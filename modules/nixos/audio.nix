@@ -1,6 +1,6 @@
 { ... }:
 
-# PipeWire audio stack (was modules/configuration/sound.nix).
+# PipeWire audio stack.
 {
   security.rtkit.enable = true;
   services.pipewire = {

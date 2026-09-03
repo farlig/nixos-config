@@ -2,23 +2,22 @@
 
 # Declarative fastfetch config. Based on the "hypr" preset by Bina:
 # https://github.com/LierB/fastfetch/blob/master/presets/hypr.jsonc
-# Logo points at Anton's profile picture; packages label fixed for NixOS.
+# The packages label is adjusted for NixOS.
 #
 # Icons are written as \uXXXX escapes rather than raw Nerd Font glyphs: the
 # glyphs live in the Private Use Area and get silently stripped when this file
-# is edited, which is why the icons kept vanishing. These are the exact
-# JetBrainsMono Nerd Font codepoints from the upstream preset.
+# is edited. These are the exact JetBrainsMono Nerd Font codepoints from the
+# upstream preset.
 {
   xdg.configFile."fastfetch/config.jsonc".text = ''
     {
         "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
         "logo": {
             // Absolute path: fastfetch does NOT expand "~" in the source.
-            // Points at a pre-downscaled 272x340 copy of "frieren chibi-.png":
-            // kitty-direct displays the PNG at its native pixel resolution and
-            // ignores the "height" option, so the on-screen size is controlled
-            // by the image dimensions. Regenerate with:
-            //   magick "frieren chibi-.png" -resize x340 "frieren chibi-fastfetch.png"
+            // The image is pre-downscaled to 272x340: kitty-direct displays the
+            // PNG at its native pixel resolution and ignores the "height"
+            // option, so the on-screen size is the image's own. Resize with:
+            //   magick <source>.png -resize x340 <logo>.png
             "source": "${config.home.homeDirectory}/pictures/pfps/Frieren/frieren chibi-fastfetch.png",
             // "kitty-direct" hands the PNG straight to kitty for decoding.
             // The plain "kitty" type re-encodes the image and needs image

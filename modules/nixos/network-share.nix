@@ -1,7 +1,6 @@
 { ... }:
 
 # NFS shares from the `bank` home server, auto-mounted over Tailscale.
-# (Was the TrueNAS box; bank replaced it — the pool `Pool1` was renamed `vault`.)
 # Uses the MagicDNS name `bank` rather than a hard-coded Tailscale IP. Each of
 # bank's three exports is mounted under /mnt/vault on the client, generated from
 # the `shares` table below (client mountpoint -> server export path).

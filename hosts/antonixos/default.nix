@@ -109,8 +109,8 @@
   # Keep the driver's device state resident even with no GPU clients. Without
   # this, when the last GL/EGL client (e.g. the last kitty window) exits, the
   # driver tears down and the card idles; the next client pays a ~1-2s cold
-  # re-init before it can render. That delay is what made "the first kitty when
-  # none is already open" feel slow (fastfetch itself runs in ~50ms).
+  # re-init before it can render, which shows up as a slow first launch of any
+  # GPU-using app once nothing else is holding the driver open.
   #
   # The stock `hardware.nvidia.nvidiaPersistenced` option is unbuildable on the
   # cachyos driver (upstream re-uploaded the persistenced source, breaking its

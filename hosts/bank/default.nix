@@ -1,7 +1,7 @@
 { pkgs, inputs, hostName, ... }:
 
 let
-  # Discord webhook notifier — the replacement for TrueNAS's alert service.
+  # Discord webhook notifier — the box's only alerting channel.
   # smartd (disk health) and ZED (ZFS pool events) both invoke this; it detects
   # which one by the env vars they set and formats a Discord message. The webhook
   # URL is a secret, so it is NOT baked into the store/repo: it is read at runtime
@@ -72,11 +72,10 @@ let
   smartdOpts = "-a -o on -s (S/../.././02|L/../01/./03) -m root -M exec ${discord-alert}/bin/discord-alert";
 in
 
-# bank — the home server, migrated from a TrueNAS SCALE box. Headless: it imports
-# the host-agnostic base (NOT ../../modules/nixos, which is the desktop bundle)
-# and layers ZFS, Docker, NFS and snapshots on top. See docs/truenas-migration.md
-# for the full migration runbook; the data pool `vault` was renamed from the
-# TrueNAS `Pool1` on import.
+# bank — the home server. Headless: it imports the host-agnostic base (NOT
+# ../../modules/nixos, which is the desktop bundle) and layers ZFS, Docker, NFS
+# and snapshots on top. docs/truenas-migration.md holds the install runbook for
+# rebuilding the box from scratch.
 {
   imports = [
     ../../modules/nixos/base.nix
@@ -88,8 +87,8 @@ in
   # Required by ZFS to detect pool ownership; unique per machine, keep stable.
   networking.hostId = "9d67a92d";
 
-  # Bootloader: systemd-boot on the NVMe (the disk that held the TrueNAS boot
-  # pool). Root is plain ext4 there; ZFS is used only for the data pool below.
+  # Bootloader: systemd-boot on the NVMe. Root is plain ext4 there; ZFS is used
+  # only for the data pool below.
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
 
@@ -97,12 +96,10 @@ in
   # CachyOS kernel used on antonixos. The nixpkgs default tracks a ZFS-supported
   # series; leave it unset unless a rebuild complains, then pin an LTS here.
 
-  ### ZFS — the data pool `vault` (renamed from TrueNAS `Pool1`) ##############
+  ### ZFS — the data pool `vault` #############################################
   boot.supportedFilesystems = [ "zfs" ];
-  # Import the data pool at boot; its datasets keep their own mountpoints under
-  # /mnt/vault. First manual import on the box:
-  #   zpool import -d /dev/disk/by-id Pool1 vault
-  #   zfs set mountpoint=/mnt/vault vault && zfs inherit -r mountpoint vault
+  # Import the data pool at boot; its datasets carry their own mountpoints under
+  # /mnt/vault, set on the pool itself rather than declared here.
   boot.zfs.extraPools = [ "vault" ];
   # Don't force-import a pool that wasn't cleanly exported (guards against
   # importing disks still claimed by another system). This is the 26.11 default.
@@ -118,9 +115,9 @@ in
   # NVMe ext4 root is trimmed separately by services.fstrim (on by default).
   services.zfs.trim.enable = true;
 
-  ### Snapshots — replaces the TrueNAS periodic snapshot tasks ################
-  # No replication target existed on the old box — snapshots are the only copies
-  # and live on the same pool. Worth adding syncoid to an offsite pool later.
+  ### Snapshots ###############################################################
+  # There is no replication target: snapshots are the only copies and they live
+  # on the same pool. Worth adding syncoid to an offsite pool.
   #
   # Heads up: sanoid ships a built-in `template_default` (hourly=48, daily=90,
   # monthly=6). A dataset section only *overrides* the keys it names, so a
@@ -156,8 +153,8 @@ in
         monthly = 12; # 1 year, then aged out
       };
       # Bulk media/torrents: re-downloadable, so one week of daily snapshots is
-      # plenty. hourly/monthly zeroed to override template_default (otherwise
-      # the old daily-only config kept 48 hourly + 6 monthly, as it did before).
+      # plenty. hourly/monthly are zeroed explicitly, or template_default's
+      # 48 hourly + 6 monthly would be inherited.
       "vault/data" = {
         autosnap = true;
         autoprune = true;
@@ -168,7 +165,7 @@ in
     };
   };
 
-  ### Health alerting — Discord webhook (replaces TrueNAS alert service) ######
+  ### Health alerting — Discord webhook #######################################
   # One-time setup on the box (the URL is a secret, kept out of git/store):
   #   umask 077 && printf '%s' 'https://discord.com/api/webhooks/…' \
   #     > /etc/discord-alert.webhook
@@ -200,16 +197,14 @@ in
     ZED_NOTIFY_VERBOSE = false;
   };
 
-  ### Storage status web UI (replaces the TrueNAS status pages) ###############
-  # Scrutiny = SMART/disk-health dashboard with history; its collector runs
-  # Scrutiny SMART/ZFS dashboard has MOVED to a Docker stack running the
-  # actively-maintained Staros-Labs fork (/home/anton/stacks/scrutiny), which
-  # adds ZFS pool monitoring the nixpkgs module (analogj's stale image) lacks.
-  # The container publishes the web UI on the same host port 8083, so Caddy and
-  # the firewall rule below are unchanged. The old module is parked (not removed)
-  # for rollback: its InfluxDB data survives untouched at /var/lib/influxdb2
-  # (a StateDirectory NixOS never garbage-collects), so re-enabling this block
-  # restores the previous dashboard with its history intact.
+  ### Storage status web UI ###################################################
+  # Scrutiny — SMART/disk-health dashboard with history — runs as a Docker
+  # compose stack, not through this module: the stack uses the Staros-Labs fork,
+  # which adds the ZFS pool monitoring the nixpkgs module's image lacks. The
+  # container publishes the web UI on host port 8083, the port Caddy and the
+  # firewall rule below expect. The module block below stays as a fallback: its
+  # InfluxDB data lives at /var/lib/influxdb2 (a StateDirectory NixOS never
+  # garbage-collects), so enabling it brings the dashboard back with its history.
   # services.scrutiny = {
   #   enable = true;
   #   influxdb.enable = true;          # bundled InfluxDB2 backend on localhost:8086
@@ -219,10 +214,10 @@ in
   # };
 
   # Reachable over Tailscale (bank:8083) and to the Caddy container. The port is
-  # now served by the scrutiny Docker container instead of the module above.
+  # served by the scrutiny Docker container.
   networking.firewall.allowedTCPPorts = [ 8083 ];
 
-  ### Docker — runs the compose stacks (exported from Portainer) ##############
+  ### Docker — runs the compose stacks ########################################
   # Data-root defaults to /var/lib/docker on the fast NVMe root — deliberately
   # NOT on the spinning `vault` pool. App config/data still lives under
   # /mnt/vault/configs and /mnt/vault/data via each stack's bind mounts.
@@ -235,8 +230,8 @@ in
   # Cap the systemd journal at 5G (it defaults to ≤10% of the fs, ~90G here).
   services.journald.extraConfig = "SystemMaxUse=5G";
   # Let anton drive docker without sudo (merges with the groups in users.nix).
-  # `apps` is the gid the compose stacks run as (PUID/PGID 3001, carried over
-  # from TrueNAS) — several config trees under /mnt/vault/configs are owned
+  # `apps` is the gid the compose stacks run as (PUID/PGID 3001) — several
+  # config trees under /mnt/vault/configs are owned
   # 3001:3001 and group-writable, so membership lets anton edit them over SSH
   # without sudo. Note this is distinct from localadm (3000), the NFS squash
   # identity below.
@@ -244,22 +239,21 @@ in
   users.users.anton.extraGroups = [ "docker" "apps" ];
 
   ### Shoko — live config tree on the NVMe, mirrored nightly to the pool ######
-  # Shoko's SQLite DB is a random-IO workload and was painfully slow on `vault`
-  # (spinning rust), so the whole ~5G .shoko tree lives on the NVMe root; the
-  # stack in /home/anton/stacks/shoko/compose.yaml binds /var/lib/shoko to the
-  # container's /home/shoko/.shoko (unchanged, so settings-server.json's
-  # container-internal paths still resolve). The NVMe has no redundancy and no
+  # Shoko's SQLite DB is a random-IO workload and crawls on `vault` (spinning
+  # rust), so the whole ~5G .shoko tree lives on the NVMe root; the shoko compose
+  # stack binds /var/lib/shoko to the container's /home/shoko/.shoko, the path
+  # its settings-server.json expects. The NVMe has no redundancy and no
   # snapshots, which the nightly mirror below buys back.
   #
-  # 3001:3001 is the container's PUID/PGID (carried over from TrueNAS). gid 3001
-  # is the `apps` group above; there is no uid 3001 user, so the owner is
-  # numeric — matching how these files are already owned on the pool. 0770 keeps
+  # 3001:3001 is the container's PUID/PGID. gid 3001 is the `apps` group above;
+  # there is no uid 3001 user, so the owner is numeric — matching how these
+  # files are owned on the pool. 0770 keeps
   # anton able to edit the tree over SSH via `apps`.
   systemd.tmpfiles.rules = [ "d /var/lib/shoko 0770 3001 3001 -" ];
 
-  # The mirror's destination is the dataset that used to hold the live tree, so
-  # sanoid's existing vault/configs rules snapshot it — that's where the version
-  # history comes from, and why nothing needs adding to services.sanoid above.
+  # The mirror's destination sits under vault/configs, so sanoid's existing
+  # rules there snapshot it — that's where the version history comes from, and
+  # why nothing needs adding to services.sanoid above.
   systemd.services.shoko-backup = {
     description = "Mirror Shoko's NVMe config tree back to the vault pool";
     startAt = "*-*-* 04:00:00";
@@ -310,7 +304,7 @@ in
   services.tailscale.useRoutingFeatures = "server";
   services.tailscale.extraSetFlags = [ "--advertise-routes=192.168.1.0/24" ];
 
-  ### NFS server — the three exports carried over from TrueNAS ################
+  ### NFS server — the three exports ##########################################
   # all_squash maps every client to the per-export anon identity, matching the
   # on-disk ownership of each tree so clients can create AND delete files
   # (deletion needs write on the *parent dir*, so the squash id must own it):
@@ -346,8 +340,8 @@ in
       PermitRootLogin = "no";
     };
   };
-  # anton's SSH public key (from Bitwarden). Password auth is off, so this is the
-  # only remote access; console login on the physical machine is the fallback.
+  # anton's SSH public key. Password auth is off, so this is the only remote
+  # access; console login on the physical machine is the fallback.
   users.users.anton.openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINZruSAPUJsVNFibcfUFw5yfqOqkSFut19mPMsHLVcjJ"
   ];

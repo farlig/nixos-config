@@ -13,9 +13,8 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-  # LUKS2 full disk encryption (retrofitted in place with `cryptsetup
-  # reencrypt`). These are the LUKS container UUIDs; the btrfs filesystem
-  # UUID below survived the conversion unchanged.
+  # LUKS2 full disk encryption. These are the LUKS *container* UUIDs; the
+  # btrfs filesystem UUID below is the one of the volume inside cryptroot.
   boot.initrd.luks.devices = {
     cryptroot = {
       device = "/dev/disk/by-uuid/62698cfb-75d8-4bec-a56d-4006bb615457";
