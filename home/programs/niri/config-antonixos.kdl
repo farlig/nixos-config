@@ -121,6 +121,14 @@ spawn-at-startup "sh" "-c" "systemctl --user import-environment WAYLAND_DISPLAY 
 
 debug {
     honor-xdg-activation-with-invalid-serial
+
+    // This niri build has no wp_linux_drm_syncobj_v1, so dmabuf clients fall
+    // back to implicit sync, which the NVIDIA driver does not honour: the
+    // compositor can scan out a Chromium/Electron buffer before its render
+    // finished, flashing the wallpaper through the window for a frame. Making
+    // niri wait for frame completion before queueing costs a little latency
+    // and removes that flicker.
+    wait-for-frame-completion-before-queueing
 }
 
 // Print { spawn-sh "set -e; grim -t ppm -g \"$(slurp -o -d -F monospace)\" - | satty --filename - --copy-command=wl-copy --annotation-size-factor 2.0 --output-filename=\"$(xdg-user-dir PICTURES)/Screenshots/Screenshot from %Y-%m-%d %H:%M:%S.png\" --actions-on-enter=\"save-to-clipboard,exit\" --brush-smooth-history-size=5 --disable-notifications"; }
