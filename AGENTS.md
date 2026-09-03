@@ -15,15 +15,19 @@ Anton's NixOS configuration, a Nix flake on `nixpkgs` unstable. Three hosts:
 - **xps13** — laptop for schoolwork. systemd-boot, LUKS2 full disk encryption
   (root + swap, single passphrase), laptop power management (thermald,
   auto-cpufreq, powertop), bluetooth/upower, fwupd/LVFS firmware.
-- **bank** — headless home server (migrated off TrueNAS SCALE; runbook in
-  `docs/truenas-migration.md`). systemd-boot, ZFS data pool `vault` + sanoid
+- **bank** — headless home server. systemd-boot, ZFS data pool `vault` + sanoid
   snapshots, Docker compose stacks, NFS server, Tailscale subnet router for the
-  home LAN, key-only SSH.
+  home LAN, key-only SSH. `docs/truenas-migration.md` is the runbook for standing
+  the box up from scratch.
 
 Desktop stack (antonixos + xps13 only): **niri** (Wayland compositor),
 **noctalia** shell + greeter, **stylix** theming (catppuccin-mocha), kitty,
 yazi, neovim (LazyVim), zsh. home-manager is wired in as a NixOS module for
 user `anton` on every host; bank gets a lean headless profile.
+
+antonixos and bank are the machines this config is deployed to. xps13's host
+files stay in the repo and must keep evaluating, but the laptop is not currently
+running NixOS.
 
 ## Layout
 
@@ -41,10 +45,12 @@ host file.
 flake.nix                     inputs + 3-line mkHost helper; each host = ./hosts/<name>
 flake.lock
 docs/
-  truenas-migration.md        TrueNAS→NixOS runbook for bank (install + cutover)
+  truenas-migration.md        install runbook for bank (partitioning, pool import, cutover)
 hosts/
-  antonixos/default.nix       desktop specifics (limine+SB, cachyos kernel, nvidia, steam)
-  antonixos/wooting.nix       udev rule for Wooting keyboard (uaccess, drop power-switch tag)
+  antonixos/default.nix       desktop specifics (limine+SB, cachyos kernel, nvidia, steam,
+                              nix-ld for foreign binaries, flatpak for the Flathub apps)
+  antonixos/udev.nix          peripheral access: QMK/VIA udev rules + a Wooting rule
+                              (uaccess, drop the power-switch tag)
   antonixos/hardware-configuration.nix
   xps13/default.nix           laptop specifics (systemd-boot, systemd initrd + resume for
                               the LUKS setup, bluetooth/upower, power mgmt, fwupd,
@@ -57,20 +63,23 @@ modules/nixos/                shared config, split by concern
   base.nix                    host-agnostic foundation: nix, locale, networking, boot,
                               users, caches + system.stateVersion. ALL hosts get this.
   default.nix                 the desktop/laptop bundle: base.nix + GUI modules below
-                              + external flake modules (chaotic, stylix, noctalia,
+                              + external flake modules (chaotic, stylix, noctalia-greeter,
                               home-manager). antonixos/xps13 import this; bank does NOT.
                               niri is nixpkgs' own programs.niri module (no flake input).
   nix.nix                     nix daemon settings, GC, allowUnfree, insecure pkgs
   boot.nix                    EFI vars only (bootloader is per-host; quiet/splash boot
                               is desktop-only and lives in desktop.nix)
   locale.nix                  timezone/locale (Europe/Copenhagen, en_DK), console keymap
-  networking.nix              NetworkManager, tailscale (bluetooth/upower are xps13-only)
+  networking.nix              NetworkManager, tailscale (bluetooth is per-host; upower
+                              is xps13-only)
   network-share.nix           bank's three NFS exports auto-mounted over tailscale under
                               /mnt/vault (desktop bundle only — bank is the server)
   audio.nix                   PipeWire (+rtkit)
   desktop.nix                 niri, greeter, quiet/plymouth boot, fonts, xdg portals,
                               noctalia greeter polkit, kdeconnect (+firewall ports)
-  packages.nix                desktop-host packages + SUDO_ASKPASS (NOT on bank)
+  packages.nix                desktop-host packages (incl. the noctalia shell and helium
+                              from flake inputs, and a wrapped equibop for the IPU6 webcam)
+                              + SUDO_ASKPASS (NOT on bank)
   users.nix                   user `anton` (wheel/video/networkmanager, zsh login shell)
   stylix.nix                  system stylix (catppuccin-mocha, dark)
   caches.nix                  ALL binary substituters/keys (single source of truth)
@@ -79,17 +88,22 @@ modules/nixos/                shared config, split by concern
 home/
   default.nix                 desktop HM entrypoint: imports programs/*, xdg.userDirs
                               (lowercase), xdg.mimeApps URL-scheme handlers
-  bank.nix                    lean HM profile for bank: zsh-headless, nvim, yazi only
+  bank.nix                    lean HM profile for bank: zsh-headless, nvim, yazi, comma
   programs/
     niri/niri.nix             picks config-<host>.kdl by hostName
     niri/config-antonixos.kdl raw niri config (edited directly, NOT via a Nix settings API)
     niri/config-xps13.kdl
-    zsh.nix                   zsh + powerlevel10k + aliases (incl. `update`, `bupdate`)
+    zsh.nix                   zsh + powerlevel10k + aliases (`update`, `flupdate`,
+                              `bupdate`) + the `uc` jellyfin-maintenance function
     zsh-headless.nix          lean zsh for bank (starship prompt; no p10k/lsd/bat/fastfetch)
     nvim.nix                  neovim + lazyvim, defaultEditor
     kitty.nix                 kitty (JetBrainsMono Nerd Font)
     yazi.nix                  yazi file manager + clipboard plugin + keymap
     fastfetch.nix             declarative fastfetch config (hypr preset)
+    mpd.nix                   mpd + rmpc, library over NFS from bank; mpDris2 for the
+                              media keys (desktop hosts only)
+    idle.nix                  swayidle lock/dpms/suspend chain — xps13 only (mkIf hostName)
+    comma.nix                 comma (`,`) on the prebuilt nix-index database
     noctalia.nix              noctalia shell settings (bar, dock, theme, wallpaper, session)
     bitwarden.nix             bitwarden desktop (nixpkgs) + SSH agent; antonixos/bank
     bitwarden-flatpak.nix     xps13: bitwarden as a Flatpak (nix-flatpak) for working
@@ -99,7 +113,7 @@ home/
                               imported alongside the nix-flatpak HM module
     twintail.nix              antonixos: twintail launcher (Flathub Flatpak)
     sober.nix                 antonixos: sober roblox player (Flathub Flatpak)
-    stylix.nix                per-app stylix opt-outs (niri/kitty/noctalia)
+    stylix.nix                per-app stylix opt-outs (kitty/noctalia/yazi)
     termfilechooser.nix       file-chooser portal wired to yazi-in-kitty
 ```
 
@@ -112,7 +126,8 @@ home/
   --use-remote-sudo` — builds locally, copies over Tailscale, activates with
   remote sudo (bank's wheel sudo is passwordless, SSH is key-only).
 - **Agent-run rebuild:** use `pkexec` so authentication goes through the GUI
-  polkit agent (KDE), whose dialog accepts either the password *or* a fingerprint,
+  polkit agent (`polkit-gnome`, started from `modules/nixos/desktop.nix`), whose
+  dialog accepts either the password *or* a fingerprint,
   instead of blocking on a dead TTY:
   `setsid pkexec nixos-rebuild switch --flake ~/nixos-config#<host> < /dev/null`.
   The `setsid … < /dev/null` detaches from any controlling TTY so pkexec routes to
@@ -149,15 +164,19 @@ home/
 - **A binary cache / substituter** → `modules/nixos/caches.nix` (not flake.nix nixConfig;
   see the note in that file re: first-build bootstrapping on a fresh machine).
 - **Theming** → system-wide via stylix (`modules/nixos/stylix.nix`); apps that theme
-  themselves opt out in `home/programs/stylix.nix` (currently niri, kitty,
-  noctalia, yazi — anything noctalia's theme templates write must opt out, or
-  HM activation fails on the clobbered file at the next-but-one rebuild).
+  themselves opt out in `home/programs/stylix.nix` (currently kitty, noctalia and
+  yazi — anything noctalia's theme templates write must opt out, or HM activation
+  fails on the clobbered file at the next-but-one rebuild).
   noctalia applies its own Catppuccin theme + templates to btop/kitty/niri/neovim/
   obsidian/yazi (see `home/programs/noctalia.nix` `theme.templates`).
 - **The file picker** → termfilechooser → yazi in kitty (`home/programs/termfilechooser.nix`
   + portal config in `modules/nixos/desktop.nix`).
 - **A URL-scheme / default-app handler** (e.g. `discord://` → equibop) →
   `xdg.mimeApps.defaultApplications` in `home/default.nix`.
+- **A udev rule / peripheral access** → `hosts/antonixos/udev.nix` (one file for
+  every device on that host, not a file per rule).
+- **An idle / lock / suspend timeout** → `home/programs/idle.nix`, which is
+  `lib.mkIf (hostName == "xps13")`; the desktop deliberately has no idle chain.
 - **A Flatpak app** → its own `home/programs/<app>.nix` with
   `services.flatpak.packages`, imported from the matching `hostName` branch in
   `home/default.nix` (that branch must also pull in the nix-flatpak HM module
@@ -166,7 +185,7 @@ home/
 ## Host differences
 
 antonixos is the gaming desktop, xps13 the schoolwork laptop, bank the headless
-server — place "laptop-ish" things (battery, bluetooth, firmware) in xps13's
+server — place "laptop-ish" things (battery, firmware, fingerprint) in xps13's
 host file, not in a shared module.
 
 | Concern     | antonixos                         | xps13                              | bank                             |
@@ -179,7 +198,7 @@ host file, not in a shared module.
 | Disk encryption | none                          | LUKS2 (root + swap, one passphrase) | none                            |
 | Power/peripherals | bluetooth                   | thermald, auto-cpufreq, powertop, bluetooth, upower | none            |
 | Firmware    | none                              | fwupd/LVFS                         | none                             |
-| Extras      | Steam, gamescope, protontricks, sbctl | fprintd fingerprint, Bitwarden via Flatpak | ZFS+sanoid, Docker, NFS server, subnet router, sshd |
+| Extras      | Steam, gamescope, protontricks, sbctl, nix-ld, QMK/Wooting udev | fprintd fingerprint, Bitwarden via Flatpak, suspend-then-hibernate | ZFS+sanoid, Docker, NFS server, subnet router, sshd |
 
 fwupd is laptop-only — never add it to antonixos. bank must NOT use the CachyOS
 kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
@@ -198,20 +217,30 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   `modules/nixos/nix.nix` `permittedInsecurePackages`.
 - Don't commit `.bak` / `.backup` files (home-manager writes `*.backup` on
   clobber; they're byproducts, not config — both patterns are gitignored).
+- **Comments describe the config as it is now, not how it got here.** Keep the
+  ones that explain current behaviour, a persistent gotcha, or what an option or
+  input is for. Drop the story of a change — what broke, what was tried first,
+  why it was swapped, the issue link for a problem that is already handled. The
+  diff is the record of what changed, and that rationale doesn't get relocated
+  into the commit message either; if it's worth keeping it belongs in this file.
+  A comment also shouldn't point at unmanaged state outside the repo (an
+  imperatively installed app, a path in `$HOME`): describe what the option does,
+  not who happens to use it.
+- Commit messages are a subject line only (`area: what changed`, lowercase),
+  no rationale body.
 - Only commit or push when explicitly asked.
 
 ## Gotchas already discovered (don't re-derive these)
 
 - **niri keyboard layout is pinned in the KDL** (`input.keyboard.xkb` in each
-  `config-<host>.kdl`). It used to be inherited from `services.xserver.xkb` via
-  systemd-localed, but systemd 261 stopped reading
-  `/etc/X11/xorg.conf.d/00-keyboard.conf`, silently dropping the layout to US.
-  Don't remove the xkb block; keep it and the host file's
-  `services.xserver.xkb.layout` in agreement.
+  `config-<host>.kdl`). With that block empty, niri follows systemd-localed,
+  which since systemd 261 no longer reads `/etc/X11/xorg.conf.d/00-keyboard.conf`
+  and silently drops the layout to US. Don't remove the xkb block; keep it and
+  the host file's `services.xserver.xkb.layout` in agreement.
 
-- **niri is nixpkgs' `programs.niri` module** (the niri-flake input was dropped —
-  sodiboo's repo went stale). That module is minimal, which means
-  `modules/nixos/desktop.nix` must supply things niri-flake used to bundle:
+- **niri is nixpkgs' `programs.niri` module** — there is no niri flake input.
+  That module is minimal, so `modules/nixos/desktop.nix` supplies what it leaves
+  out:
   - **A polkit authentication agent** — the module ships none, so GUI auth
     prompts (Bitwarden's `com.bitwarden.Bitwarden.unlock` auth_self, any
     `pkexec` needing a prompt) would silently fail. desktop.nix runs
@@ -226,16 +255,16 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
     desktop.nix must `lib.mkForce` the niri FileChooser to `termfilechooser`.
     `wayland-session.nix` (pulled in by the module) already adds the gtk portal
     and enables dconf/polkit/gnome-keyring, so those aren't re-declared.
-  Stylix has no niri target of its own (that came from niri-flake), so there is
-  **no** `stylix.targets.niri` opt-out — niri is themed by noctalia's templates.
+  Stylix has no niri target, so there is **no** `stylix.targets.niri` opt-out —
+  niri is themed by noctalia's templates.
 
 - **noctalia greeter sync** runs `pkexec noctalia-greeter-apply-appearance` on
   every wallpaper/colour change (auto_sync), and its action defaults to
   `auth_admin`. A polkit rule in `modules/nixos/desktop.nix` authorizes it
   without a prompt by matching the action id `org.noctalia.greeter.apply-appearance`
   for the active local wheel session. (noctalia's policy annotates `exec.path`
-  with the real store path, so pkexec binds this action by id — not the
-  `org.freedesktop.policykit.exec` fallback an older noctalia forced.)
+  with the real store path, so pkexec binds this action by id, not by the
+  `org.freedesktop.policykit.exec` fallback.)
   `security.polkit.enablePkexecWrapper = true` is required because nixpkgs made
   the setuid pkexec wrapper opt-in.
 - **fastfetch icons** in `home/programs/fastfetch.nix` are written as `\uXXXX`
@@ -258,8 +287,8 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   - **The polkit unlock action must be registered.** Biometric unlock — desktop
     *and* browser — authenticates via the polkit action
     `com.bitwarden.Bitwarden.unlock`. The Flatpak can't install a system polkit
-    policy itself, and the nixpkgs `bitwarden-desktop` package that used to ship it
-    is no longer installed, so `hosts/xps13/default.nix` registers it via a
+    policy itself, and the nixpkgs `bitwarden-desktop` package that ships it is not
+    installed on this host, so `hosts/xps13/default.nix` registers it via a
     `writeTextDir` package. Without it, unlock fails "Action
     com.bitwarden.Bitwarden.unlock is not registered".
   - **Never declare `~/.config/autostart/bitwarden.desktop` via home-manager.** It
@@ -268,8 +297,7 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
     registers its `messagingService` IPC listener — silently breaking the app menu
     (File collapses to just Quit, no Settings), the account switcher, and the
     SSH-agent handlers. Autostart Bitwarden from niri `spawn-at-startup` in
-    `config-<host>.kdl` instead, and keep the app's own "start on login" off. (This
-    bit us once, commit 67e9a52; reverted.)
+    `config-<host>.kdl` instead, and keep the app's own "start on login" off.
   - **Firefox extension biometric unlock is wired up by hand** in
     `bitwarden-flatpak.nix` (upstream supports it — IPC transport #14836, sandbox
     biometric fix #18625, ~2026.5 — but the Flatpak doesn't auto-write the browser
@@ -281,9 +309,7 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
     pointing at that wrapper. **Manifest location matters**: this nixpkgs Firefox
     (`MOZ_LEGACY_PROFILES=1`) reads it from `~/.mozilla/native-messaging-hosts/`
     even though its profile is the XDG `~/.config/mozilla/firefox` —
-    `~/.config/mozilla/native-messaging-hosts` does NOT work. (#17965, once cited
-    here as "unsupported", is closed-completed and was about the desktop biometric
-    fix; browser integration works with this manual bridge.)
+    `~/.config/mozilla/native-messaging-hosts` does NOT work.
   - **Linux has no first-unlock-with-biometrics**: after each app start you unlock
     once with master password/PIN, then fingerprint works for the rest of the
     session. Bitwarden autostarts and stays running, so that's once per boot.
@@ -296,20 +322,20 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   bundle) points at `home/default.nix`; bank carries its own `home-manager`
   block pointing at the slim `home/bank.nix`. HM settings changed in one place
   won't reach the other.
-- **xps13 is LUKS2-encrypted** (retrofitted in place with `cryptsetup reencrypt`,
-  no reinstall). Both volumes share one passphrase: `boot.initrd.systemd.enable`
+- **xps13 is LUKS2-encrypted** (root + swap). Both volumes share one
+  passphrase: `boot.initrd.systemd.enable`
   (in `hosts/xps13/default.nix`) makes stage-1 retry it on the swap volume, so
   boot shows a single prompt — don't remove that option or the second prompt
   comes back. The initrd prompt uses the `dk-latin1` console keymap from
   `locale.nix`. The UUIDs in `boot.initrd.luks.devices` are the LUKS *container*
-  UUIDs; the btrfs filesystem UUID predates the encryption and is unchanged.
+  UUIDs; the btrfs UUID in `fileSystems` is the volume inside cryptroot.
   Swap runs through `/dev/mapper/cryptswap` and is also the hibernation resume
   device (`boot.resumeDevice`). Argon2id makes each unlock take a few seconds —
   that's by design, not a hang. The other hosts are unencrypted.
 - **URL-scheme handlers** live in `xdg.mimeApps.defaultApplications` in
   `home/default.nix`. Enabling `xdg.mimeApps` makes `~/.config/mimeapps.list` a
-  read-only store symlink, so apps can no longer self-register schemes at runtime
-  (Electron's `setAsDefaultProtocolClient` silently no-ops). Any handler an app
-  used to register imperatively (`claude-cli`, deadlock mod manager, …) must be
-  listed there too, or it regresses. Equibop's `discord://` handler is set this
-  way because its self-registration never stuck on NixOS.
+  read-only store symlink, so an app cannot self-register a scheme at runtime
+  (Electron's `setAsDefaultProtocolClient` silently no-ops). Every scheme the
+  session should handle has to be listed there — including the ones an app would
+  otherwise claim for itself on first launch (`discord://`, `claude-cli://`,
+  the deadlock mod manager's, …).
