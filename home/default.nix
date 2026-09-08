@@ -12,6 +12,7 @@
     ./programs/fastfetch.nix
     ./programs/mpd.nix
     ./programs/noctalia.nix
+    ./programs/vicinae.nix
     ./programs/idle.nix
     ./programs/stylix.nix
     ./programs/termfilechooser.nix

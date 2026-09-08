@@ -105,6 +105,8 @@ home/
     idle.nix                  swayidle lock/dpms/suspend chain — xps13 only (mkIf hostName)
     comma.nix                 comma (`,`) on the prebuilt nix-index database
     noctalia.nix              noctalia shell settings (bar, dock, theme, wallpaper, session)
+    vicinae.nix               vicinae launcher + its user daemon (Mod+D); themed by
+                              stylix's vicinae target
     bitwarden.nix             bitwarden desktop (nixpkgs) + SSH agent; antonixos/bank
     bitwarden-flatpak.nix     xps13: bitwarden as a Flatpak (nix-flatpak) for working
                               biometrics; SSH-agent socket pinned to the flatpak data
