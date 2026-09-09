@@ -49,7 +49,7 @@ in
     obsidian
     polkit
     bat
-    lsd
+    eza
     spotify
     # Music/video downloaders. yt-dlp for ad-hoc grabs + format inspection
     # (`yt-dlp -F`); spotdl wraps it to tag downloads with Spotify metadata +

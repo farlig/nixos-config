@@ -9,7 +9,7 @@
 
     shellAliases = {
       grep = "grep --color=auto";
-      ls = "lsd";
+      ls = "eza";
       cat = "bat";
       update = "sudo nixos-rebuild switch --flake ~/nixos-config#$HOST";
       # Bump every flake input in flake.lock (doesn't rebuild — run `update` after).

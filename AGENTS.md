@@ -95,7 +95,7 @@ home/
     niri/config-xps13.kdl
     zsh.nix                   zsh + powerlevel10k + aliases (`update`, `flupdate`,
                               `bupdate`) + the `uc` jellyfin-maintenance function
-    zsh-headless.nix          lean zsh for bank (starship prompt; no p10k/lsd/bat/fastfetch)
+    zsh-headless.nix          lean zsh for bank (starship prompt; no p10k/bat/fastfetch)
     nvim.nix                  neovim + lazyvim, defaultEditor
     kitty.nix                 kitty (JetBrainsMono Nerd Font)
     yazi.nix                  yazi file manager + clipboard plugin + keymap

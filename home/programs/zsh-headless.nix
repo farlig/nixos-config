@@ -1,10 +1,9 @@
 { ... }:
 
 # Lean zsh for the headless `bank` server. Deliberately NOT ./zsh.nix — that one
-# sources ~/.p10k.zsh (an unmanaged dotfile) and calls fastfetch/lsd/bat, all of
-# which come from the desktop-only packages.nix. This keeps the nice-to-haves
-# (autosuggestions, syntax highlighting, a clean prompt) with nothing extra
-# dragged onto the server. Prompt is starship: declarative, no config wizard.
+# sources ~/.p10k.zsh (an unmanaged dotfile) and calls fastfetch/bat, which come
+# from the desktop-only packages.nix. This keeps the nice-to-haves (autosuggestions,
+# syntax highlighting, a clean prompt) with nothing extra dragged onto the server. Prompt is starship: declarative, no config wizard.
 {
   programs.zsh = {
     enable = true;
@@ -19,6 +18,7 @@
 
     shellAliases = {
       grep = "grep --color=auto";
+      ls = "eza";
       ll = "ls -lah";
       la = "ls -A";
       # Rebuild bank from the flake (clone it to ~/nixos-config first, or edit
