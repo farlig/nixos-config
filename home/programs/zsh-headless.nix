@@ -18,9 +18,12 @@
 
     shellAliases = {
       grep = "grep --color=auto";
-      ls = "eza";
-      ll = "ls -lah";
-      la = "ls -A";
+      # eza stands in for ls. No --icons here: they need a Nerd Font, and the
+      # font is the SSH client's, not this box's.
+      ls = "eza --group-directories-first";
+      ll = "eza -lh --git --group-directories-first";
+      la = "eza -lah --git --group-directories-first";
+      lt = "eza -T -L 2";
       # Rebuild bank from the flake (clone it to ~/nixos-config first, or edit
       # the path). Hostname is fixed to `bank` since this profile is host-specific.
       update = "sudo nixos-rebuild switch --flake ~/nixos-config#bank";

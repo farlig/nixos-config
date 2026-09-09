@@ -9,7 +9,12 @@
 
     shellAliases = {
       grep = "grep --color=auto";
-      ls = "eza";
+      # eza stands in for ls. --icons needs a Nerd Font (kitty has one); `auto`
+      # keeps them out of pipes. --git adds a per-file status column in long view.
+      ls = "eza --group-directories-first --icons=auto";
+      ll = "eza -lh --git --group-directories-first --icons=auto";
+      la = "eza -lah --git --group-directories-first --icons=auto";
+      lt = "eza -T -L 2 --icons=auto";
       cat = "bat";
       update = "sudo nixos-rebuild switch --flake ~/nixos-config#$HOST";
       # Bump every flake input in flake.lock (doesn't rebuild — run `update` after).
