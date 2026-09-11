@@ -371,6 +371,7 @@ in
     rsync
     tmux
     eza
+    tldr
     pciutils
     # Discord health-alert notifier (smartd + ZED call it automatically; this
     # puts it on PATH so `sudo discord-alert …` can send a manual test).

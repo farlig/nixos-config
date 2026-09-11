@@ -50,6 +50,7 @@ in
     polkit
     bat
     eza
+    tldr
     spotify
     # Music/video downloaders. yt-dlp for ad-hoc grabs + format inspection
     # (`yt-dlp -F`); spotdl wraps it to tag downloads with Spotify metadata +
