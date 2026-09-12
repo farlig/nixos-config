@@ -341,3 +341,13 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   session should handle has to be listed there — including the ones an app would
   otherwise claim for itself on first launch (`discord://`, `claude-cli://`,
   the deadlock mod manager's, …).
+- **vicinae's calculator must use the Qalculate backend.** Its default backend,
+  numen, passes `QLocale::system().name()` into `std::locale`. Qt's locale name
+  carries no codeset (`en_DK`), glibc only has `en_DK.UTF-8`, and the bare name
+  can't be generated — `i18n.supportedLocales` normalizes everything to
+  `.utf8`. So `std::locale` throws, every calculation errors out, and the
+  launcher shows no result row at all. `home/programs/vicinae.nix` pins
+  `settings.providers.calculator.preferences.backend = "qalculate"`. It has to
+  be declarative: `programs.vicinae.settings` makes
+  `~/.config/vicinae/settings.json` a read-only store symlink, so *any* change
+  made in vicinae's own settings GUI fails to persist.

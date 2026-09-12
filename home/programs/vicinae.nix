@@ -11,6 +11,13 @@
     enable = true;
     systemd.enable = true;
 
+    # Calculator backend. The default, numen, hands
+    # `QLocale::system().name()` to `std::locale`; that name carries no
+    # codeset ("en_DK"), and glibc only knows "en_DK.UTF-8", so it throws and
+    # every calculation fails with no result row. Qalculate takes its locale
+    # from the environment instead.
+    settings.providers.calculator.preferences.backend = "qalculate";
+
     # A translucent launcher window. Vicinae's `material` (blur by default)
     # only shows through at opacity < 1, and it asks niri to blur behind the
     # window over ext-background-effect, so no niri layer-rule is involved.
