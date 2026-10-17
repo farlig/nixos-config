@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, ... }:
+{ pkgs, lib, ... }:
 
 # The graphical session shared by the desktop hosts: niri, its greeter, the
 # file-chooser portal, fonts and the polkit agent. Pulled in by ./default.nix,
@@ -43,9 +43,8 @@
     noto-fonts-cjk-sans
   ];
 
-  programs.noctalia-greeter = {
+  services.displayManager.noctalia-greeter = {
     enable = true;
-    package = inputs.noctalia-greeter.packages.${pkgs.stdenv.hostPlatform.system}.default;
     greeter-args = "--session niri-session";
   };
 
