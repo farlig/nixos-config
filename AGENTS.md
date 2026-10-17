@@ -103,8 +103,6 @@ home/
     kitty.nix                 kitty (JetBrainsMono Nerd Font)
     yazi.nix                  yazi file manager + clipboard plugin + keymap
     fastfetch.nix             declarative fastfetch config (hypr preset)
-    mpd.nix                   mpd + rmpc, library over NFS from bank; mpDris2 for the
-                              media keys (desktop hosts only)
     idle.nix                  swayidle lock/dpms/suspend chain — xps13 only (mkIf hostName)
     comma.nix                 comma (`,`) on the prebuilt nix-index database
     noctalia.nix              noctalia shell settings (bar, dock, theme, wallpaper, session)
