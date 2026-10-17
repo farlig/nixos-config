@@ -47,6 +47,7 @@ in
     ffmpeg
     fastfetch
     obsidian
+    krita
     polkit
     bat
     eza
