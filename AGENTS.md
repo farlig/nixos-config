@@ -42,6 +42,7 @@ desktop hosts import `../../modules/nixos`; bank imports
 host file.
 
 ```
+.github/workflows/ci.yml      CI: evaluates all three hosts on push (no build, no secrets)
 flake.nix                     inputs + 3-line mkHost helper; each host = ./hosts/<name>
 flake.lock
 docs/
@@ -141,6 +142,10 @@ home/
   dialog is password-only.
 - Eval-only check (no root, no build — use this to validate changes):
   `nix eval .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath`
+- CI runs that same eval for all three hosts on every push, plus weekly
+  (`.github/workflows/ci.yml`). It builds nothing and needs no secrets, so it
+  catches eval-level breakage only — renamed options, a bad flake bump, and
+  xps13 drifting while it is undeployed.
 - Parse a single file: `nix-instantiate --parse <file>.nix`.
 - Hosts are `antonixos`, `xps13` and `bank`. `$HOST` on each machine matches
   its hostname.

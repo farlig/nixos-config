@@ -16,11 +16,9 @@
   nix.settings = {
     substituters = [
       "https://cache.nixos.org/"
-      "https://niri.cachix.org"
       "https://noctalia.cachix.org"
     ];
     trusted-public-keys = [
-      "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ];
   };

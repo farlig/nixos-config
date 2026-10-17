@@ -1,0 +1,57 @@
+name: ci
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  # Catches upstream drift even on weeks with no push.
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+# The newest run on a ref wins.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval:
+    name: eval all hosts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: nixbuild/nix-quick-install-action@v35
+        with:
+          # The flake has nine `github:` inputs and runner IPs are shared, so
+          # unauthenticated fetches hit GitHub's 60/hour API limit and fail with
+          # a 403. GITHUB_TOKEN is injected by Actions; nothing to configure.
+          nix_conf: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      # One job rather than a matrix: a matrix would refetch nixpkgs and every
+      # input per host. The loop reports all broken hosts instead of just the
+      # first. `--no-write-lock-file` makes an incomplete flake.lock fail loudly.
+      - name: Evaluate every host
+        run: |
+          set -uo pipefail
+          failed=()
+          for host in antonixos xps13 bank; do
+            echo "::group::$host"
+            if nix eval --no-write-lock-file \
+                ".#nixosConfigurations.$host.config.system.build.toplevel.drvPath"; then
+              echo "$host ok"
+            else
+              failed+=("$host")
+            fi
+            echo "::endgroup::"
+          done
+          if [ "${#failed[@]}" -ne 0 ]; then
+            echo "::error ::failed to evaluate: ${failed[*]}"
+            exit 1
+          fi
