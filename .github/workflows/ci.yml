@@ -5,7 +5,8 @@ on:
     branches: ['**']
   pull_request:
   workflow_dispatch:
-  # Catches upstream drift even on weeks with no push.
+  # Drives flake-update-preview only. Scheduled runs happen on the default
+  # branch, and cron is UTC with no DST handling.
   schedule:
     - cron: '0 6 * * 1'
 
@@ -18,6 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The gate: does the committed flake.lock still evaluate for every host?
   eval:
     name: eval all hosts
     runs-on: ubuntu-latest
@@ -34,24 +36,31 @@ jobs:
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
-      # One job rather than a matrix: a matrix would refetch nixpkgs and every
-      # input per host. The loop reports all broken hosts instead of just the
-      # first. `--no-write-lock-file` makes an incomplete flake.lock fail loudly.
       - name: Evaluate every host
-        run: |
-          set -uo pipefail
-          failed=()
-          for host in antonixos xps13 bank; do
-            echo "::group::$host"
-            if nix eval --no-write-lock-file \
-                ".#nixosConfigurations.$host.config.system.build.toplevel.drvPath"; then
-              echo "$host ok"
-            else
-              failed+=("$host")
-            fi
-            echo "::endgroup::"
-          done
-          if [ "${#failed[@]}" -ne 0 ]; then
-            echo "::error ::failed to evaluate: ${failed[*]}"
-            exit 1
-          fi
+        run: .github/scripts/eval-hosts.sh
+
+  # Answers a question the gate above cannot: is `flupdate` safe this week?
+  # The lock is bumped in the runner's checkout only and thrown away with it, so
+  # a failure here means today's inputs break a host — not that main is broken.
+  flake-update-preview:
+    name: flake update preview
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: nixbuild/nix-quick-install-action@v35
+        with:
+          nix_conf: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update the lock
+        run: nix flake update
+
+      - name: Report what moved
+        run: git --no-pager diff --stat flake.lock
+
+      - name: Evaluate every host against the new lock
+        run: .github/scripts/eval-hosts.sh
