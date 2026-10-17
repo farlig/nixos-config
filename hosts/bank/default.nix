@@ -228,7 +228,7 @@ in
   # named volumes, and the bind mounts under /mnt/vault are all left untouched.
   virtualisation.docker.autoPrune.enable = true;
   # Cap the systemd journal at 5G (it defaults to ≤10% of the fs, ~90G here).
-  services.journald.extraConfig = "SystemMaxUse=5G";
+  services.journald.settings.Journal.SystemMaxUse = "5G";
   # Let anton drive docker without sudo (merges with the groups in users.nix).
   # `apps` is the gid the compose stacks run as (PUID/PGID 3001) — several
   # config trees under /mnt/vault/configs are owned
