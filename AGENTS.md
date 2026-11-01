@@ -54,6 +54,9 @@ hosts/
                               nix-ld for foreign binaries, flatpak for the Flathub apps)
   antonixos/udev.nix          peripheral access: QMK/VIA udev rules + a Wooting rule
                               (uaccess, drop the power-switch tag)
+  antonixos/server-picker-x.nix  Server Picker X release binary (via nix-ld); its
+                              `sudo iptables` goes through a pkexec helper into its
+                              own chain ahead of nixos-fw
   antonixos/hardware-configuration.nix
   xps13/default.nix           laptop specifics (systemd-boot, resume from the
                               LUKS swap, bluetooth/upower, power mgmt, fwupd,

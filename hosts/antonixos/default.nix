@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 # antonixos — the desktop. Everything here is specific to this machine;
 # shared configuration lives in ../../modules/nixos.
@@ -45,6 +45,9 @@
     sbctl
     xkeyboard_config # XKB layout data at a stable path, for foreign binaries
     desktop-file-utils # update-desktop-database, which desktop apps shell out to
+    (callPackage ./server-picker-x.nix {
+      iptables = config.networking.firewall.package;
+    })
   ];
 
   # Expose share/X11 (XKB layout data) on the system path.
@@ -117,7 +120,7 @@
       gmp nettle e2fsprogs libcap
       libX11 libXext libXrender libXrandr libXi
       libXcursor libXfixes libXtst libxcb libXScrnSaver
-      libXcomposite libXdamage libxshmfence
+      libXcomposite libXdamage libxshmfence libICE libSM
     ];
   };
 
