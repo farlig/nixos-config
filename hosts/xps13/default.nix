@@ -16,10 +16,6 @@
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.timeout = 0;
 
-  # Full disk encryption (LUKS2, see hardware-configuration.nix): systemd
-  # stage-1 reuses the passphrase across volumes, so root + swap unlock with
-  # a single prompt, rendered through plymouth.
-  boot.initrd.systemd.enable = true;
   # Resume from the encrypted swap volume (hibernation support; lid-close
   # stays poweroff — hibernation is possible, not the default).
   boot.resumeDevice = "/dev/mapper/cryptswap";

@@ -55,8 +55,8 @@ hosts/
   antonixos/udev.nix          peripheral access: QMK/VIA udev rules + a Wooting rule
                               (uaccess, drop the power-switch tag)
   antonixos/hardware-configuration.nix
-  xps13/default.nix           laptop specifics (systemd-boot, systemd initrd + resume for
-                              the LUKS setup, bluetooth/upower, power mgmt, fwupd,
+  xps13/default.nix           laptop specifics (systemd-boot, resume from the
+                              LUKS swap, bluetooth/upower, power mgmt, fwupd,
                               fprintd fingerprint, flatpak for the Bitwarden app)
   xps13/hardware-configuration.nix  also holds the LUKS2 device entries (cryptroot/cryptswap)
   bank/default.nix            server specifics (ZFS `vault`, sanoid, docker, NFS server,
@@ -334,11 +334,9 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   block pointing at the slim `home/bank.nix`. HM settings changed in one place
   won't reach the other.
 - **xps13 is LUKS2-encrypted** (root + swap). Both volumes share one
-  passphrase: `boot.initrd.systemd.enable`
-  (in `hosts/xps13/default.nix`) makes stage-1 retry it on the swap volume, so
-  boot shows a single prompt — don't remove that option or the second prompt
-  comes back. The initrd prompt uses the `dk-latin1` console keymap from
-  `locale.nix`. The UUIDs in `boot.initrd.luks.devices` are the LUKS *container*
+  passphrase: systemd stage-1 (the only initrd nixpkgs ships) retries it on the
+  swap volume, so boot shows a single prompt. The initrd prompt uses the
+  `dk-latin1` console keymap from `locale.nix`. The UUIDs in `boot.initrd.luks.devices` are the LUKS *container*
   UUIDs; the btrfs UUID in `fileSystems` is the volume inside cryptroot.
   Swap runs through `/dev/mapper/cryptswap` and is also the hibernation resume
   device (`boot.resumeDevice`). Argon2id makes each unlock take a few seconds —

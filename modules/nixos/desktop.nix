@@ -22,7 +22,6 @@
   # Quiet, graphical boot. Desktop-only: the headless server keeps a plain
   # verbose console, so this does not belong in the shared boot.nix.
   boot.consoleLogLevel = 3;
-  boot.initrd.verbose = false;
   boot.kernelParams = [
     "quiet"
     "splash"
