@@ -50,6 +50,42 @@
   # Expose share/X11 (XKB layout data) on the system path.
   environment.pathsToLink = [ "/share/X11" ];
 
+  # Boosted virtual source for the Audeze Maxwell mic. Its hardware capture
+  # level tops out at -1 dB, so the extra gain is applied in software; the
+  # mixer's "Gain 1" is linear (2.0 ≈ +6 dB). Pick "Audeze Maxwell Mic
+  # (boosted)" as the default input.
+  services.pipewire.extraConfig.pipewire."91-maxwell-mic-boost" = {
+    "context.modules" = [{
+      name = "libpipewire-module-filter-chain";
+      args = {
+        "node.description" = "Audeze Maxwell Mic (boosted)";
+        "media.name" = "Audeze Maxwell Mic (boosted)";
+        "audio.channels" = 1;
+        "audio.position" = [ "MONO" ];
+        # mixer has 8 inputs, so the graph's ports must be named explicitly.
+        "filter.graph" = {
+          nodes = [{
+            type = "builtin";
+            name = "gain";
+            label = "mixer";
+            control."Gain 1" = 2.0;
+          }];
+          inputs = [ "gain:In 1" ];
+          outputs = [ "gain:Out" ];
+        };
+        "capture.props" = {
+          "node.name" = "capture.maxwell_mic_boost";
+          "node.passive" = true;
+          "target.object" = "alsa_input.usb-Audeze_LLC_Audeze_Maxwell_Dongle_0000000000000000-01.mono-fallback";
+        };
+        "playback.props" = {
+          "node.name" = "maxwell_mic_boost";
+          "media.class" = "Audio/Source";
+        };
+      };
+    }];
+  };
+
   # Bluetooth (controllers, headphones). upower stays laptop-only.
   hardware.bluetooth.enable = true;
 
