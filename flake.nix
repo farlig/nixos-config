@@ -32,6 +32,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Spotifast, a native Spotify client nixpkgs does not package. Upstream
+    # publishes no binary cache yet, so it builds from source.
+    spotifast = {
+      url = "github:crmne/spotifast";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     noctalia = {
       url = "github:noctalia-dev/noctalia";
       inputs.nixpkgs.follows = "nixpkgs";
