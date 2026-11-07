@@ -25,6 +25,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Grimoire, a Deadlock mod manager nixpkgs does not package. Built from
+    # source by upstream's flake; updates come through the flake, not the app.
+    grimoire = {
+      url = "github:Slush97/grimoire";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     noctalia = {
       url = "github:noctalia-dev/noctalia";
       inputs.nixpkgs.follows = "nixpkgs";

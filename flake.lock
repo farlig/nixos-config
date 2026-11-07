@@ -193,6 +193,44 @@
         "type": "gitlab"
       }
     },
+    "grimoire": {
+      "inputs": {
+        "grimoire-social": "grimoire-social",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "vpkmerge": "vpkmerge"
+      },
+      "locked": {
+        "lastModified": 1793217533,
+        "narHash": "sha256-vonRR6SHL7CyOwYTqn7kyztMiI2PKl7rt52WFl8wRiI=",
+        "owner": "Slush97",
+        "repo": "grimoire",
+        "rev": "0645dfc8a66336c5a5cc5abd61c02fe6f73e9c6b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Slush97",
+        "repo": "grimoire",
+        "type": "github"
+      }
+    },
+    "grimoire-social": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790726909,
+        "narHash": "sha256-D69CEBrGshmGTyoYA8d0CYTdTtmY0xIrpFHDnI2vNdY=",
+        "owner": "Slush97",
+        "repo": "grimoire-social",
+        "rev": "b5811d361450ebe8d863276392ad387a31d8295b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Slush97",
+        "repo": "grimoire-social",
+        "type": "github"
+      }
+    },
     "helium": {
       "inputs": {
         "nixpkgs": [
@@ -407,6 +445,7 @@
     "root": {
       "inputs": {
         "chaotic": "chaotic",
+        "grimoire": "grimoire",
         "helium": "helium",
         "home-manager": "home-manager_2",
         "lazyvim": "lazyvim",
@@ -543,6 +582,23 @@
       "original": {
         "owner": "tinted-theming",
         "repo": "base16-zed",
+        "type": "github"
+      }
+    },
+    "vpkmerge": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793215607,
+        "narHash": "sha256-xSatPEgcNhgIQ6LLKg7qDKJXHXGvJ0HtXlUzy3zDTaQ=",
+        "owner": "Slush97",
+        "repo": "vpkmerge",
+        "rev": "c87ce356e5cbbd1cad05e55931f7224e1a89fadb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Slush97",
+        "ref": "v0.28.0",
+        "repo": "vpkmerge",
         "type": "github"
       }
     }

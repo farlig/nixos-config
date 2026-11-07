@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 # antonixos — the desktop. Everything here is specific to this machine;
 # shared configuration lives in ../../modules/nixos.
@@ -40,6 +40,7 @@
     winetricks
     protonup-qt
     deadlock-mod-manager
+    inputs.grimoire.packages.${pkgs.stdenv.hostPlatform.system}.default # Deadlock mod manager
     prismlauncher # modded Minecraft launcher (imports CurseForge/Modrinth packs)
     nyaa # TUI for browsing/downloading torrents from nyaa.si
     sbctl
