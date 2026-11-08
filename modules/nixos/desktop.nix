@@ -88,6 +88,10 @@
     };
   };
 
+  # Cap how long the user session waits on a unit that ignores SIGTERM (e.g. a
+  # leftover Proton winedevice.exe in Steam's scope) before SIGKILL at shutdown.
+  systemd.user.settings.Manager.DefaultTimeoutStopSec = "15s";
+
   # The niri module already sets config.niri.default = [ "gnome" "gtk" ] and adds
   # the gnome/gtk portals; it also points niri's FileChooser at gtk (because
   # useNautilus is off), so force that one back to our terminal file chooser.
