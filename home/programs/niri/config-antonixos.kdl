@@ -107,9 +107,8 @@ spawn-at-startup "steam"
 // media keys (bound to `playerctl --player playerctld`) target it.
 spawn-at-startup "playerctld"
 
-// Delay spotify so wireplumber is up first; otherwise spotify grabs audio
-// early and resets the volume to 100.
-spawn-at-startup "sh" "-c" "sleep 5; exec spotify"
+// Delay spotifast so wireplumber is up before its player opens audio.
+spawn-at-startup "sh" "-c" "sleep 5; exec spotifast"
 
 // Import the session env into systemd/dbus so user services (portals) can see
 // WAYLAND_DISPLAY, then restart the file-chooser portal. The termfilechooser
