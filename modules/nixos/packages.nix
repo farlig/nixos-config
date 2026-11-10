@@ -5,19 +5,28 @@
 let
   # The XPS 13 webcam is an Intel IPU6 (ov01a10). Its raw /dev/video* nodes only
   # emit Bayer data, so apps that open V4L2 directly (Discord/Equibop) get no
-  # image — the usable camera exists only via libcamera→PipeWire. These two
-  # settings make Equibop's Chromium use the PipeWire camera path:
-  #   --enable-features=WebRtcPipeWireCamera  requests the camera via the portal
-  #   LIBCAMERA_SOFTISP_MODE=cpu              CPU debayer; GPU (EGL) produces
-  #                                           DMA-BUF strides Chromium rejects
-  # Harmless on hosts with a normal UVC webcam (PipeWire fronts those too).
+  # image — the usable camera exists only via libcamera→PipeWire. Harmless on
+  # hosts with a normal UVC webcam (PipeWire fronts those too).
+  #   WebRtcPipeWireCamera        requests the camera via the portal
+  #   LIBCAMERA_SOFTISP_MODE=cpu  CPU debayer; GPU (EGL) produces DMA-BUF
+  #                               strides Chromium rejects
+  #
+  # Chromium's bundled ffmpeg has no HEVC decoder, so H.265 video only plays
+  # through VA-API hardware decode:
+  #   LD_LIBRARY_PATH += libva    Electron's rpath has no libva to dlopen
+  #   Vaapi*/…HEVC… features      enable VA-API decode; VaapiOnNvidiaGPUs stops
+  #                               Chromium skipping the nvidia-drm device
+  #
+  # Chromium only honours the last --enable-features, so all features share
+  # the one flag.
   equibop = pkgs.symlinkJoin {
     name = "equibop";
     paths = [ pkgs.equibop ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/equibop \
-        --add-flags "--enable-features=WebRtcPipeWireCamera" \
+        --add-flags "--enable-features=WebRtcPipeWireCamera,VaapiVideoDecoder,VaapiOnNvidiaGPUs,PlatformHEVCDecoderSupport,AcceleratedVideoDecodeLinuxGL" \
+        --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath [ pkgs.libva ]} \
         --set-default LIBCAMERA_SOFTISP_MODE cpu
     '';
   };
