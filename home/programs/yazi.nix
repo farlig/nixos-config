@@ -6,7 +6,7 @@
       shellWrapperName = "y";
 
       plugins = {
-        clipboard = pkgs.yaziPlugins.clipboard;
+        system-clipboard = pkgs.yaziPlugins.clipboard;
       };
 
       settings = {
@@ -38,8 +38,8 @@
 
       keymap = {
         mgr.prepend_keymap = [
-          { on = ["y"]; run = [ "yank" "plugin clipboard -- --action=copy" ]; }
-          { on = ["<C-p>"]; run = "plugin clipboard --action=paste"; }
+          { on = ["y"]; run = [ "yank" "plugin system-clipboard -- --action=copy" ]; }
+          { on = ["<C-p>"]; run = "plugin system-clipboard --action=paste"; }
         ];
       };
   };
