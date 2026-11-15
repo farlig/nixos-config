@@ -56,6 +56,7 @@ in
     ffmpeg
     fastfetch
     obsidian
+    libreoffice
     krita
     polkit
     bat

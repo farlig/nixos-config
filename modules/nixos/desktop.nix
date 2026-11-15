@@ -40,6 +40,10 @@
     noto-fonts
     noto-fonts-color-emoji
     noto-fonts-cjk-sans
+    # Microsoft fonts (Arial, Times New Roman, Calibri, Cambria, …) so Office
+    # documents keep their layout instead of reflowing onto substitutes.
+    corefonts
+    vista-fonts
   ];
 
   services.displayManager.noctalia-greeter = {
