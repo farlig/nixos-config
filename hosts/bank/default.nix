@@ -293,6 +293,50 @@ in
     '';
   };
 
+  ### AMP — daily copy of each instance's newest backup to the pool ##########
+  # AMP writes its backups next to each instance on the NVMe root (the
+  # minecraft-server stack's ampdata bind mount), which has no redundancy. Once
+  # a day the newest finished zip of every instance is copied to vault and the
+  # copies are pruned to the newest 7 per instance. Pruning goes by count, not
+  # age, so a stopped instance that makes no new backups keeps its last 7.
+  # The destination is under vault/data, whose sanoid policy keeps 7 daily
+  # snapshots, so a pruned copy stays recoverable from a snapshot for a week.
+  systemd.services.amp-backup = {
+    description = "Copy AMP's newest instance backups to the vault pool";
+    startAt = "*-*-* 04:30:00";
+    serviceConfig.Type = "oneshot";
+    unitConfig.RequiresMountsFor = "/mnt/vault/data";
+    script = ''
+      src=/home/anton/stacks/minecraft-server/ampdata/.ampdata/instances
+      dst=/mnt/vault/data/backups/amp
+      keep=7
+
+      shopt -s nullglob
+      for dir in "$src"/*/Backups; do
+        instance=$(basename "$(dirname "$dir")")
+        # AMP builds a backup in .staging and moves the zip in when it's done,
+        # so a top-level zip is always complete. Names start with a timestamp.
+        zips=( "$dir"/*.zip )
+        (( ''${#zips[@]} )) || continue
+        newest=$(printf '%s\n' "''${zips[@]}" | sort | tail -n 1)
+        name=$(basename "$newest")
+
+        out="$dst/$instance"
+        install -d -o 3001 -g 3001 -m 0770 "$out"
+        if [[ ! -e "$out/$name" ]]; then
+          cp "$newest" "$out/$name.tmp"
+          chown 3001:3001 "$out/$name.tmp"
+          mv "$out/$name.tmp" "$out/$name"
+        fi
+
+        copies=( "$out"/*.zip )
+        if (( ''${#copies[@]} > keep )); then
+          printf '%s\n' "''${copies[@]}" | sort | head -n -"$keep" | xargs -r rm -f
+        fi
+      done
+    '';
+  };
+
   ### Tailscale subnet router — advertise the home LAN to the tailnet ########
   # Lets remote tailnet nodes reach the 192.168.1.0/24 home network *through*
   # bank. `useRoutingFeatures = "server"` just enables IP forwarding (additive);
