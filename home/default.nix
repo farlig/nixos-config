@@ -61,6 +61,7 @@
       "text/html" = "helium.desktop";
       "application/xhtml+xml" = "helium.desktop";
       "x-scheme-handler/discord" = "equibop.desktop";
+      "x-scheme-handler/spotify" = "spotify.desktop";
       "x-scheme-handler/claude-cli" = "claude-code-url-handler.desktop";
       "x-scheme-handler/deadlock-mod-manager" = ".deadlock-mod-manager-wrapped-handler.desktop";
       "x-scheme-handler/deadlock-modmanager" = ".deadlock-mod-manager-wrapped-handler.desktop";
