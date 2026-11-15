@@ -22,7 +22,7 @@
       # Deploy the headless `bank` server from here: build the closure locally,
       # copy it over Tailscale, activate with remote sudo. Works from any desktop
       # host (antonixos/xps13) whose anton key is authorized on bank.
-      bupdate = "nixos-rebuild switch --flake ~/nixos-config#bank --target-host anton@bank --use-remote-sudo";
+      bupdate = "nixos-rebuild switch --flake ~/nixos-config#bank --target-host anton@bank --elevate=sudo";
     };
 
     initContent = ''

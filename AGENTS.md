@@ -129,7 +129,7 @@ home/
   (zsh alias `update` targets `#$HOST`).
 - **Deploy bank** from a desktop host (bank is headless): zsh alias `bupdate` =
   `nixos-rebuild switch --flake ~/nixos-config#bank --target-host anton@bank
-  --use-remote-sudo` — builds locally, copies over Tailscale, activates with
+  --elevate=sudo` — builds locally, copies over Tailscale, activates with
   remote sudo (bank's wheel sudo is passwordless, SSH is key-only).
 - **Agent-run rebuild:** use `pkexec` so authentication goes through the GUI
   polkit agent (`polkit-gnome`, started from `modules/nixos/desktop.nix`), whose
