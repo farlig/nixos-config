@@ -63,9 +63,6 @@
       "x-scheme-handler/discord" = "equibop.desktop";
       "x-scheme-handler/spotify" = "spotify.desktop";
       "x-scheme-handler/claude-cli" = "claude-code-url-handler.desktop";
-      "x-scheme-handler/deadlock-mod-manager" = ".deadlock-mod-manager-wrapped-handler.desktop";
-      "x-scheme-handler/deadlock-modmanager" = ".deadlock-mod-manager-wrapped-handler.desktop";
-      "x-scheme-handler/dlmm" = ".deadlock-mod-manager-wrapped-handler.desktop";
       "x-scheme-handler/grimoire" = "grimoire.desktop";
       "x-scheme-handler/bitwarden" = "bitwarden.desktop";
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document" = "writer.desktop";

@@ -350,7 +350,7 @@ kernel: ZFS needs a kernel with a matching module, so its kernel stays unset
   (Electron's `setAsDefaultProtocolClient` silently no-ops). Every scheme the
   session should handle has to be listed there — including the ones an app would
   otherwise claim for itself on first launch (`discord://`, `claude-cli://`,
-  the deadlock mod manager's, …).
+  grimoire's, …).
 - **vicinae's calculator must use the Qalculate backend.** Its default backend,
   numen, passes `QLocale::system().name()` into `std::locale`. Qt's locale name
   carries no codeset (`en_DK`), glibc only has `en_DK.UTF-8`, and the bare name
