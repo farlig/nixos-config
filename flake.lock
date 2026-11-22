@@ -437,50 +437,7 @@
         "nixpkgs": "nixpkgs_2",
         "noctalia": "noctalia",
         "noctalia-greeter": "noctalia-greeter",
-        "spotifast": "spotifast",
         "stylix": "stylix"
-      }
-    },
-    "rust-overlay": {
-      "inputs": {
-        "nixpkgs": [
-          "spotifast",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1787834454,
-        "narHash": "sha256-jXSvqn04IOecJCvSvl8+g3PsbDVNP6qKs6dKUs/b16k=",
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "rev": "dc2fd1acc537f3583744e1373597a5731ff7a6e3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
-    "spotifast": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "rust-overlay": "rust-overlay"
-      },
-      "locked": {
-        "lastModified": 1794950020,
-        "narHash": "sha256-JYzMT8MeGSca37XNcgAm3cw7dXYHfzKB1QYJMWw2TKg=",
-        "owner": "crmne",
-        "repo": "spotifast",
-        "rev": "eaaf3c6c12be1f97bc0043a3686d9b407df216f8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "crmne",
-        "repo": "spotifast",
-        "type": "github"
       }
     },
     "stylix": {
