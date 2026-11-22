@@ -286,10 +286,25 @@ in
       # Everything else. SQLite/ is excluded because the loop above owns it and
       # logs/ is churn with no restore value; --exclude also protects both dirs
       # on the destination from --delete.
-      rsync -aH --delete \
+      #
+      # vault/configs is acltype=nfsv4 + aclmode=restricted, so chmod on a file
+      # with an inherited ACL is EPERM even for root; modes come from the
+      # inherited ACL instead. --no-perms keeps rsync from aborting each file
+      # over that, but it still chmods new files/dirs and exits 23. Exit 23 is
+      # accepted only when every error line is one of those chmod failures.
+      err=$(mktemp)
+      rc=0
+      rsync -aH --no-perms --delete \
         --exclude='Shoko.CLI/SQLite/' \
         --exclude='Shoko.CLI/logs/' \
-        /var/lib/shoko/ /mnt/vault/configs/shoko-config/
+        /var/lib/shoko/ /mnt/vault/configs/shoko-config/ 2>"$err" || rc=$?
+      other=$(grep -v \
+        -e '^rsync: \[[a-z]*\] failed to set permissions on .*: Operation not permitted (1)$' \
+        -e '^rsync error: some files/attrs were not transferred' "$err" || true)
+      rm -f "$err"
+      if [[ -n $other ]]; then printf '%s\n' "$other" >&2; fi
+      if (( rc == 23 )) && [[ -z $other ]]; then rc=0; fi
+      exit "$rc"
     '';
   };
 
