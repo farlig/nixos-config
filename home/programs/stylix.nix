@@ -12,4 +12,7 @@
   # rofi isn't used, and stylix's rofi target sets the renamed
   # programs.rofi.font, which warns on every eval.
   stylix.targets.rofi.enable = false;
+  # home-manager removed programs.wayprompt, so any definition of it fails
+  # an assertion; stylix's wayprompt target still sets its colours.
+  stylix.targets.wayprompt.enable = false;
 }
